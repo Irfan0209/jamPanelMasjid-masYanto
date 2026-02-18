@@ -12,7 +12,36 @@ char * namaBulanHijriah[] = {
     "SYA'BAN", "RAMADHAN", "SYAWAL",
     "DZULQA'DAH", "DZULHIJAH"
 };
+//
 
+void jamCenter(){
+//    if(adzan) return;
+//    //if(!dwDo(DrawAdd)) return; 
+    RtcDateTime now = Rtc.GetDateTime();
+
+  if(now.Second() % 2 ){
+//      Disp.drawRect(15, 6, 16, 7, 1); //posisi y = 6
+//      Disp.drawRect(15, 9, 16, 10, 1); //posisi y = 9
+      Disp.drawCircle(15,4,1,1);
+      Disp.drawCircle(15,11,1,1);
+    }else{
+//      Disp.drawRect(15, 6, 16, 7, 0); //posisi y = 5
+//      Disp.drawRect(15, 9, 16, 10, 0); //posisi y = 8
+      Disp.drawCircle(15,4,1,0);
+      Disp.drawCircle(15,11,1,0);
+    }
+    
+    // Tampilkan jam digital
+  fType(3);
+  Disp.drawChar(0, 0, '0' + now.Hour() / 10);
+  Disp.drawChar(7, 0, '0' + now.Hour() % 10); 
+  
+  Disp.drawChar(18, 0, '0' + now.Minute() / 10);
+  Disp.drawChar(25, 0, '0' + now.Minute() % 10);
+
+  DoSwap = true;
+}
+/*
 struct SholatAnim {
   uint8_t  phase;      // IN / HOLD / OUT
   uint8_t  sNum;       // index sholat
@@ -365,7 +394,7 @@ void drawSholatFrame(uint8_t sNum, uint8_t x) {
   DoSwap = true;
 }*/
 
-//================== animasi jam besar ==================//
+/*/================== animasi jam besar ==================//
 void anim_JG()
   {
     if(adzan) return;
@@ -475,7 +504,7 @@ void drawGreg_TS(int y)   // Draw Time
     dwCtr(0,y,Buff);
     DoSwap = true;
   }
-
+*/
 //===================== end ========================//
 
 void dwCtr(int x, int y, String Msg){

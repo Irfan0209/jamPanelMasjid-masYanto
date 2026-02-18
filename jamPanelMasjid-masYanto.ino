@@ -1,42 +1,39 @@
 /*************************************************************************************
-JAM_DIGITAL_MODIF 64 X 16
-28/02/2021
+JAM_DIGITAL_MASJID_MAS-YANTO 93 X 16
+17/02/2026
 **************************************************************************************/
-//#include <SoftwareSerial.h>
+
 #include <DMDESP.h>
-//#include <font/KecNumber.h>
+#include <C:\Users\irfan\Documents\Arduino\libraries\DMDESP-master\fonts/KecNumber.h>
 #include <C:\Users\irfan\Documents\Arduino\libraries\DMDESP-master\fonts/BigNumber.h>
-//#include <font/Font4x6.h>
+#include <C:\Users\irfan\Documents\Arduino\libraries\DMDESP-master\fonts/Font4x6.h>
 #include <C:\Users\irfan\Documents\Arduino\libraries\DMDESP-master\fonts/SystemFont5x7.h>
-//#include <font/Font3x5.h>
+#include <C:\Users\irfan\Documents\Arduino\libraries\DMDESP-master\fonts/Font3x5.h>
 #include <C:\Users\irfan\Documents\Arduino\libraries\DMDESP-master\fonts/EMSans8x16.h>
-//#include <font/Calibri14.h>  
+#include <C:\Users\irfan\Documents\Arduino\libraries\DMDESP-master\fonts/Calibri14.h>  
 #include <C:\Users\irfan\Documents\Arduino\libraries\DMDESP-master\fonts/Mono5x7.h>
 
 #include <Wire.h>
 #include <RtcDS3231.h>
 #include <Prayer.h>
 #include <ESP_EEPROM.h>
-//#include <avr/pgmspace.h>
 #include <MemoryFree.h>
 
 #define BUZZ    D4 
 
-//#define Font0 Font4x6
+#define Font0 Font4x6
 #define Font3 BigNumber
-//#define Font2 Font3x5
+#define Font2 Font3x5
 #define Font1 SystemFont5x7
-//#define Font4 KecNumber
+#define Font4 KecNumber
 #define Font5 EMSans8x16
-//#define Font6 Calibri14
+#define Font6 Calibri14
 #define Font7 SystemFont5x7
 
 char password[20] = "00000000";
 
-//SoftwareSerial dfSerial(10,11); // RX, TX ke DFPlayer
-
 // Object Declarations
-DMDESP Disp(2,1);
+DMDESP Disp(3,1);
 
 //create object
 RtcDS3231<TwoWire> Rtc(Wire);
@@ -56,31 +53,44 @@ struct Config {
   double latitude = -7.364057;
   double longitude = 112.646222;
   uint8_t zonawaktu = 7;
-  int16_t Correction = -1; //Koreksi tanggal hijriyah, -1 untuk mengurangi, 0 tanpa koreksi, 1 untuk menambah
+  byte Correction = -1; //Koreksi tanggal hijriyah, -1 untuk mengurangi, 0 tanpa koreksi, 1 untuk menambah
+  uint16_t   brightness    = 10;
+  uint8_t    speedDate      = 40; // Kecepatan default date
+  uint8_t    speedText1     = 40; // Kecepatan default text  
+  uint8_t    speedText2     = 40;
+  uint8_t    speedText3     = 40;
+  uint8_t    speedText4     = 40;
+  uint8_t    speedText5     = 40;
+  uint8_t    speedName      = 40;
+  bool       stateMode       = 0;
+  bool       stateBuzzerClock = false;
+  bool       stateBuzzer   = 1;
+  uint8_t    jamOn        = 0;
+  uint8_t    jamOff       = 0;
+  uint8_t    menitOn      = 0;
+  uint8_t    menitOff     = 0;
+  char text1[250];
+  char text2[250];
+  char text3[250]; 
+  char text4[250];
+  char text5[250];
+  char name[250];
+  
 };
 Config config;
 
-// Variabel untuk waktu, tanggal, teks berjalan, tampilan ,dan kecerahan
-char text1[101], text2[101],name[101];
-uint16_t   brightness    = 50;
-bool       adzan         = 0;
-bool       stateBuzzer   = 1;
 uint8_t    DWidth        = Disp.width();
 uint8_t    DHeight       = Disp.height();
+
+// Variabel untuk waktu, tanggal, teks berjalan, tampilan ,dan kecerahan
+bool       adzan         = 0;
 uint8_t    sholatNow     = -1;
 bool       reset_x       = 0; 
-
 /*======library tambahan=======*/
 bool       flagAnim = false;
-uint8_t    speedDate      = 40; // Kecepatan default date
-uint8_t    speedText1     = 40; // Kecepatan default text  
-uint8_t    speedText2     = 40;
-uint8_t    speedName      = 40;
 float      dataFloat[10];
 int        dataInteger[10];
 bool       stateSendSholat = false; 
-//uint8_t    list,lastList;
-bool       stateMode       = 0;
 bool       stateBuzzWar    = 0;
 bool       counterName     = 1;
 bool       DoSwap          = false;
@@ -110,9 +120,9 @@ Show show = ANIM_CLOCK_BIG;
 
 #define EEPROM_SIZE 512
 
-#define EEPROM_SIZE       512
+#define EEPROM_SIZE       2000
 
-// Alamat EEPROM
+/*/ Alamat EEPROM
 #define ADDR_TEXT1        0     // text1, max 100 bytes
 #define ADDR_TEXT2       100   // text2, max 100 bytes
 #define ADDR_BRIGHTNESS  200
@@ -133,6 +143,55 @@ Show show = ANIM_CLOCK_BIG;
 #define ADDR_MODE        256
 #define ADDR_SPEEDNAME   258
 #define ADDR_NAME        260
+*/
+
+// ================= TEXT (250 char) =================
+#define ADDR_TEXT1        0      // 251
+#define ADDR_TEXT2        251    // 251
+#define ADDR_TEXT3        502    // 251
+#define ADDR_TEXT4        753    // 251
+#define ADDR_TEXT5        1004   // 251
+#define ADDR_NAME         1255   // 251
+
+// ================= DISPLAY =================
+#define ADDR_BRIGHTNESS   1506   // 2
+
+// ================= SPEED =================
+#define ADDR_SPEEDTX1     1508   // 2
+#define ADDR_SPEEDTX2     1510   // 2
+#define ADDR_SPEEDTX3     1512   // 2
+#define ADDR_SPEEDTX4     1514   // 2
+#define ADDR_SPEEDTX5     1516   // 2
+#define ADDR_SPEEDNAME    1518   // 2
+#define ADDR_SPEEDDT      1520   // 2
+
+// ================= LOKASI =================
+#define ADDR_LATITUDE     1522   // 4
+#define ADDR_LONGITUDE    1526   // 4
+#define ADDR_TZ           1530   // 2
+#define ADDR_ALTITUDE     1532   // 2
+
+// ================= SHOLAT =================
+#define ADDR_IQOMAH       1534   // 6
+#define ADDR_BLINK        1540   // 6
+#define ADDR_IHTY         1546   // 6
+
+// ================= AUDIO =================
+#define ADDR_BUZZER       1552   // 1
+#define ADDR_BUZZER_CLOCK 1553   // 1
+
+// ================= SECURITY =================
+#define ADDR_PASSWORD     1554   // 9
+
+// ================= WAKTU =================
+#define ADDR_DURASIADZAN  1563   // 2
+#define ADDR_CORRECTION   1565   // 2
+#define ADDR_MODE         1567   // 1
+
+#define ADDR_JAMON        1568   // 1
+#define ADDR_MENITON      1569   // 1
+#define ADDR_JAMOFF       1570   // 1
+#define ADDR_MENITOFF     1571   // 1
 
 
 void saveStringToEEPROM(int startAddr, String data, int maxLength) {
@@ -183,7 +242,7 @@ void Disp_init_esp() {
   Disp.setDoubleBuffer(true);
   Disp.start();
   Disp.clear();
-  Disp.setBrightness(brightness);
+  Disp.setBrightness(config.brightness);
   //Serial.println("Setup dmd selesai");
 
   Disp.swapBuffers();
@@ -227,7 +286,7 @@ void setup()
   Rtc.Enable32kHzPin(false);
   Rtc.SetSquareWavePin(DS3231SquareWavePin_ModeNone);
   
-  loadFromEEPROM();
+  //loadFromEEPROM();
   
   delay(1000);
   
@@ -242,7 +301,6 @@ void setup()
       Buzzer(0);
       delay(80);
    }
-    //stateSendSholat = true;
    
 }
 
@@ -259,50 +317,50 @@ void loop()
   check();
   islam();
   Disp.clear();
+jamCenter();
+//  if (showVolumeTemp) {
+//    tampilkanVolume();
+//    if (millis() - volumeDisplayMillis >= volumeDisplayDuration) {
+//      showVolumeTemp = false;
+//    }
+//  }else{
+//  switch(show){
+//    case ANIM_CLOCK_BIG :
+//      anim_JG();
+//    break;
+//
+//    case ANIM_HIJRIAH :
+//      drawDateHijriah();
+//    break;
+//
+//    case ANIM_MASEHI :
+//      dwMrq(TGLJAWA(),50,2); 
+//    break;
+//
+//    case ANIM_DAY :
+//       drawDays();
+//    break;
+//
+//    case ANIM_TEXT1 :
+//      dwMrq(text1,45,1);
+//    break;
+//
+//    case ANIM_TEXT2 :
+//      dwMrq(text2,45,2);
+//    break;
+//
+//    case ANIM_SHOLAT :
+//      updateAnimSholat();
+//    break;
+//
+//    case ANIM_ADZAN :
+//      drawAzzan();
+//    break;
+//
+//  };
+//  }
 
-  if (showVolumeTemp) {
-    tampilkanVolume();
-    if (millis() - volumeDisplayMillis >= volumeDisplayDuration) {
-      showVolumeTemp = false;
-    }
-  }else{
-  switch(show){
-    case ANIM_CLOCK_BIG :
-      anim_JG();
-    break;
-
-    case ANIM_HIJRIAH :
-      drawDateHijriah();
-    break;
-
-    case ANIM_MASEHI :
-      dwMrq(TGLJAWA(),50,2); 
-    break;
-
-    case ANIM_DAY :
-       drawDays();
-    break;
-
-    case ANIM_TEXT1 :
-      dwMrq(text1,45,1);
-    break;
-
-    case ANIM_TEXT2 :
-      dwMrq(text2,45,2);
-    break;
-
-    case ANIM_SHOLAT :
-      updateAnimSholat();
-    break;
-
-    case ANIM_ADZAN :
-      drawAzzan();
-    break;
-
-  };
-  }
-
-    buzzerWarning(stateBuzzWar);
+    //buzzerWarning(config.stateBuzzWar);
     yield();
     if(DoSwap){Disp.swapBuffers();} // Swap Buffer if Change
 
@@ -350,11 +408,20 @@ void getData(String input) {
         if (pesan.length() > 100) pesan = pesan.substring(0, 100);
 
         if (indexText == 1) {
-          pesan.toCharArray(text1, 101);
-          saveStringToEEPROM(ADDR_TEXT1, String(text1), 100);
+          pesan.toCharArray(config.text1, 251);
+          saveStringToEEPROM(ADDR_TEXT1, String(config.text1), 250);
         } else if (indexText == 2) {
-          pesan.toCharArray(text2, 101);
-          saveStringToEEPROM(ADDR_TEXT2, String(text2), 100);
+          pesan.toCharArray(config.text2, 251);
+          saveStringToEEPROM(ADDR_TEXT2, String(config.text2), 250);
+        }else if (indexText == 3) {
+          pesan.toCharArray(config.text3, 251);
+          saveStringToEEPROM(ADDR_TEXT3, String(config.text3), 250);
+        }else if (indexText == 4) {
+          pesan.toCharArray(config.text4, 251);
+          saveStringToEEPROM(ADDR_TEXT4, String(config.text4), 250);
+        }else if (indexText == 5) {
+          pesan.toCharArray(config.text5, 251);
+          saveStringToEEPROM(ADDR_TEXT5, String(config.text5), 250);
         }
       }
       Buzzer(1);
@@ -364,9 +431,9 @@ void getData(String input) {
 
     else if (key == "name") {
        if (value.length() > 100) {value = value.substring(0, 100);} // Batasi max 100 karakter
-       value.toCharArray(name, 101); // +1 untuk null-terminator
-       Serial.println(name);
-       saveStringToEEPROM(ADDR_NAME, String(name), 100);
+       value.toCharArray(config.name, 101); // +1 untuk null-terminator
+       Serial.println(config.name);
+       saveStringToEEPROM(ADDR_NAME, String(config.name), 100);
 
       Buzzer(1);
       delay(500);
@@ -375,29 +442,44 @@ void getData(String input) {
 
 
     else if (key == "Br") {
-      brightness = map(value.toInt(), 0, 100, 10, 255);
-      Disp.setBrightness(brightness);
-      saveIntToEEPROM(ADDR_BRIGHTNESS, brightness);
+      config.brightness = map(value.toInt(), 0, 100, 10, 255);
+      Disp.setBrightness(config.brightness);
+      saveIntToEEPROM(ADDR_BRIGHTNESS, config.brightness);
     }
 
     else if (key == "Sptx1") {
-      speedText1 = map(value.toInt(), 0, 100, 10, 80);
-      saveIntToEEPROM(ADDR_SPEEDTX1, speedText1);
+      config.speedText1 = map(value.toInt(), 0, 100, 10, 80);
+      saveIntToEEPROM(ADDR_SPEEDTX1, config.speedText1);
     }
 
     else if (key == "Sptx2") {
-      speedText2 = map(value.toInt(), 0, 100, 10, 80);
-      saveIntToEEPROM(ADDR_SPEEDTX2, speedText2);
+      config.speedText2 = map(value.toInt(), 0, 100, 10, 80);
+      saveIntToEEPROM(ADDR_SPEEDTX2, config.speedText2);
+    }
+
+    else if (key == "Sptx3") {
+      config.speedText3 = map(value.toInt(), 0, 100, 10, 80);
+      saveIntToEEPROM(ADDR_SPEEDTX3, config.speedText3);
+    }
+
+    else if (key == "Sptx4") {
+      config.speedText4 = map(value.toInt(), 0, 100, 10, 80);
+      saveIntToEEPROM(ADDR_SPEEDTX4, config.speedText4);
+    }
+
+    else if (key == "Sptx5") {
+      config.speedText5 = map(value.toInt(), 0, 100, 10, 80);
+      saveIntToEEPROM(ADDR_SPEEDTX5, config.speedText5);
     }
 
     else if (key == "Spdt") {
-      speedDate = map(value.toInt(), 0, 100, 10, 80);
-      saveIntToEEPROM(ADDR_SPEEDDT, speedDate);
+      config.speedDate = map(value.toInt(), 0, 100, 10, 80);
+      saveIntToEEPROM(ADDR_SPEEDDT, config.speedDate);
     }
 
     else if (key == "Spnm") {
-      speedName = map(value.toInt(), 0, 100, 10, 80);
-      saveIntToEEPROM(ADDR_SPEEDNAME, speedName);
+      config.speedName = map(value.toInt(), 0, 100, 10, 80);
+      saveIntToEEPROM(ADDR_SPEEDNAME, config.speedName);
     }
 
     else if (key == "Lt") {
@@ -458,14 +540,19 @@ void getData(String input) {
 
 
     else if (key == "Bzr") {
-      stateBuzzer = value.toInt();
-      EEPROM.write(ADDR_BUZZER, stateBuzzer);
+      config.stateBuzzer = value.toInt();
+      EEPROM.write(ADDR_BUZZER, config.stateBuzzer);
+    }
+
+    else if (key == "bzrClk") {
+      config.stateBuzzerClock = value.toInt();
+      EEPROM.write(ADDR_BUZZER, config.stateBuzzerClock);
     }
 
     //fungsi mode dimatikan untuk kontroller arduino
     else if (key == "mode") {
-      stateMode = value.toInt();
-      EEPROM.write(ADDR_MODE, stateMode);
+     config.stateMode = value.toInt();
+      EEPROM.write(ADDR_MODE, config.stateMode);
       delay(1000);
       ESP.restart();
     }
@@ -492,8 +579,8 @@ void getData(String input) {
       if(state) {
         Buzzer(1); 
         Serial.println("RESTART_OK"); 
-        stateMode = 0;
-        EEPROM.write(ADDR_MODE, stateMode); 
+        config.stateMode = 0;
+        EEPROM.write(ADDR_MODE, config.stateMode); 
         delay(1000);
         ESP.restart();
       }
@@ -529,44 +616,80 @@ void getData(String input) {
 void loadFromEEPROM() {
   //Serial.println("=== Membaca Data dari EEPROM ===");
  
-  for (int i = 0; i < 100; i++) {
-    text1[i] = EEPROM.read(ADDR_TEXT1 + i);
-    if (text1[i] == 0) break;
+  for (int i = 0; i < 250; i++) {
+    config.text1[i] = EEPROM.read(ADDR_TEXT1 + i);
+    if (config.text1[i] == 0) break;
   }
 //  Serial.print("Text1: ");
 //  Serial.println(text1);
   
-  for (int i = 0; i < 100; i++) {
-    text2[i] = EEPROM.read(ADDR_TEXT2 + i);
-    if (text2[i] == 0) break;
+  for (int i = 0; i < 250; i++) {
+    config.text2[i] = EEPROM.read(ADDR_TEXT2 + i);
+    if (config.text2[i] == 0) break;
   }
 //  Serial.print("Text2: ");
 //  Serial.println(text2);
 
-  for (int i = 0; i < 100; i++) {
-    name[i] = EEPROM.read(ADDR_NAME + i);
-    if (name[i] == 0) break;
+for (int i = 0; i < 250; i++) {
+    config.text3[i] = EEPROM.read(ADDR_TEXT3 + i);
+    if (config.text3[i] == 0) break;
+  }
+//  Serial.print("Text3: ");
+//  Serial.println(text3);
+
+for (int i = 0; i < 250; i++) {
+    config.text4[i] = EEPROM.read(ADDR_TEXT4 + i);
+    if (config.text4[i] == 0) break;
+  }
+//  Serial.print("Text4: ");
+//  Serial.println(text4);
+
+for (int i = 0; i < 250; i++) {
+    config.text5[i] = EEPROM.read(ADDR_TEXT5 + i);
+    if (config.text5[i] == 0) break;
+  }
+//  Serial.print("Text5: ");
+//  Serial.println(text5);
+
+  for (int i = 0; i < 250; i++) {
+    config.name[i] = EEPROM.read(ADDR_NAME + i);
+    if (config.name[i] == 0) break;
   }
 //  Serial.print("nama: ");
 //  Serial.println(name);
 
-  brightness = EEPROM.read(ADDR_BRIGHTNESS);
+  config.brightness = EEPROM.read(ADDR_BRIGHTNESS);
 //  Serial.print("Brightness: ");
 //  Serial.println(brightness);
 
-  speedText1 = EEPROM.read(ADDR_SPEEDTX1);
+  config.speedText1 = EEPROM.read(ADDR_SPEEDTX1);
 //  Serial.print("Speed Text1: ");
 //  Serial.println(speedText1);
 
-  speedText2 = EEPROM.read(ADDR_SPEEDTX2);
+  config.speedText2 = EEPROM.read(ADDR_SPEEDTX2);
 //  Serial.print("Speed Text2: ");
 //  Serial.println(speedText2);
 
-  speedDate = EEPROM.read(ADDR_SPEEDDT);
+ config.speedText3 = EEPROM.read(ADDR_SPEEDTX3);
+//  Serial.print("Speed Text3: ");
+//  Serial.println(speedText3);
+
+
+ config.speedText4 = EEPROM.read(ADDR_SPEEDTX4);
+//  Serial.print("Speed Text4: ");
+//  Serial.println(speedText4);
+
+
+ config.speedText5 = EEPROM.read(ADDR_SPEEDTX5);
+//  Serial.print("Speed Text5: ");
+//  Serial.println(speedText5);
+
+
+  config.speedDate = EEPROM.read(ADDR_SPEEDDT);
 //  Serial.print("Speed Date: ");
 //  Serial.println(speedDate);
 
-  speedName = EEPROM.read(ADDR_SPEEDNAME);
+  config.speedName = EEPROM.read(ADDR_SPEEDNAME);
 //  Serial.print("Speed Name: ");
 //  Serial.println(speedName);
 
@@ -622,11 +745,31 @@ void loadFromEEPROM() {
 //    Serial.println(dataIhty[i]);
   }
 
-  stateBuzzer = EEPROM.read(ADDR_BUZZER);
+  config.stateBuzzer = EEPROM.read(ADDR_BUZZER);
 //  Serial.print("Buzzer: ");
 //  Serial.println(stateBuzzer);
 
-  stateMode = EEPROM.read(ADDR_MODE);
+ config.stateBuzzerClock = EEPROM.read(ADDR_BUZZER_CLOCK);
+//  Serial.print("stateBuzzerClock: ");
+//  Serial.println(stateBuzzerClock);
+
+config.jamOn = EEPROM.read(ADDR_JAMON);
+//  Serial.print("jamOn: ");
+//  Serial.println(jamOn);
+
+config.menitOn = EEPROM.read(ADDR_MENITON);
+//  Serial.print("menitOn: ");
+//  Serial.println(menitOn);
+
+config.jamOff = EEPROM.read(ADDR_JAMOFF);
+//  Serial.print("jamOff: ");
+//  Serial.println(jamOff);
+
+config.menitOff = EEPROM.read(ADDR_MENITOFF);
+//  Serial.print("menitOff: ");
+//  Serial.println(menitOff);
+
+  config.stateMode = EEPROM.read(ADDR_MODE);
 //  Serial.print("mode: ");
 //  Serial.println(stateMode);
 
@@ -736,7 +879,7 @@ void buzzerWarning(int cek){
 
 void Buzzer(uint8_t state)
   {
-    if(!stateBuzzer) return;
+    if(!config.stateBuzzer) return;
     
     switch(state){
       case 0 :
