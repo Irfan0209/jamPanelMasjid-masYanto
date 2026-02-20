@@ -393,10 +393,10 @@ void drawSholatFrame(uint8_t sNum, int8_t x) {
   snprintf(timeBuf, sizeof(timeBuf), "%02d:%02d", hh, mm);
 
   fType(1);
-  Disp.drawText(0, x, jadwal[sNum]);
-  Disp.drawText(32, x, timeBuf);
+  Disp.drawText(33, x, jadwal[sNum]);
+  Disp.drawText(65, x, timeBuf);
 
-  DoSwap = true;
+  //DoSwap = true;
 }
 
 void initAnimMasehi() {
@@ -444,17 +444,14 @@ void updateAnimUpDown(const char* msg) {
       break;
   }
 
-  drawFrame(msg,msAnim.x-center);
-}
-
-void drawFrame(const char* msg,int8_t x) {
-  
+  //drawFrame(msg,);
   fType(1);
-  dwCtr(0,x,msg);
+  Disp.drawText(33,msAnim.x-center,msg);
  
-  DoSwap = true;
-
+  //DoSwap = true;
 }
+
+
 /*/================== animasi jam besar ==================//
 void anim_JG()
   {
@@ -518,18 +515,15 @@ void jamCenter(){
       Disp.drawCircle(15,4,1,0);
       Disp.drawCircle(15,11,1,0);
     }
-//    sprintf(buff,"%02d:%02d",now.Hour(),now.Minute());
-    // Tampilkan jam digital
+
   fType(3);
-  
   
   Disp.drawChar(0, 0, '0' + now.Hour() / 10);
   Disp.drawChar(7, 0, '0' + now.Hour() % 10); 
   
   Disp.drawChar(18, 0, '0' + now.Minute() / 10);
   Disp.drawChar(25, 0, '0' + now.Minute() % 10);
- // Disp.drawRect(0,0,31,16,0);
-  //DoSwap = true;
+ 
 }
 
 void runn(const char* msg,uint8_t speed,uint8_t fontt){
@@ -540,6 +534,10 @@ void runn(const char* msg,uint8_t speed,uint8_t fontt){
     
     if(Disp.textWidth(msg) == 0){
        switch(show){
+        case ANIM_BIGFONT :
+            show = ANIM_DATE;
+            line = ANIM_SHOLAT;
+        break;
         case ANIM_DATE :
           show = ANIM_TEXT1;
         break;
@@ -549,17 +547,30 @@ void runn(const char* msg,uint8_t speed,uint8_t fontt){
         break;
 
         case ANIM_TEXT2 :
-            show = ANIM_DATE;
+            show = ANIM_TEXT3;
         break;
-       };
+       
+       case ANIM_TEXT3 :
+            show = ANIM_TEXT4;
+        break;
+        
+        case ANIM_TEXT4 :
+            show = ANIM_TEXT5;
+        break;
+        
+       case ANIM_TEXT5 :
+            show = ANIM_BIGFONT;
+            line = ANIM_ZONK;
+        break;
+      };
       Serial.println("pesan kosong");
       return;
      }
      
-    if (fullScroll == 0) { // Hitung hanya sekali
+   // if (fullScroll == 0) { // Hitung hanya sekali
        fType(fontt);
        (fontt == 5)? fullScroll = Disp.textWidth(msg) + DWidth + 20 : fullScroll = Disp.textWidth(msg) + DWidth ; 
-    }   
+  //  }   
      
      
      if((Tmr-lss)> speed)
@@ -569,23 +580,42 @@ void runn(const char* msg,uint8_t speed,uint8_t fontt){
           x = 0; 
           fullScroll = 0;
           msg = "";
-          switch(show){
-           case ANIM_DATE :
-            show = ANIM_TEXT1;
-           break;
-
-           case ANIM_TEXT1 :
-            show = ANIM_TEXT2;
-           break;
-           
-           case ANIM_TEXT2 :
+       switch(show){
+        case ANIM_BIGFONT :
             show = ANIM_DATE;
-           break;
-          };
-          return;}
+            line = ANIM_SHOLAT;
+        break;
+        case ANIM_DATE :
+          show = ANIM_TEXT1;
+        break;
 
-        Disp.drawText(DWidth - x, 0, msg); //runing teks diatas
-        DoSwap = true;
+        case ANIM_TEXT1 :
+          show = ANIM_TEXT2;
+        break;
+
+        case ANIM_TEXT2 :
+            show = ANIM_TEXT3;
+        break;
+       
+       case ANIM_TEXT3 :
+            show = ANIM_TEXT4;
+        break;
+        
+        case ANIM_TEXT4 :
+            show = ANIM_TEXT5;
+        break;
+        
+       case ANIM_TEXT5 :
+            show = ANIM_BIGFONT;
+            line = ANIM_ZONK;
+        break;
+      };
+        return;
+        }
+        Disp.drawText(DWidth - x, (fontt==5)?0:8, msg); //runing teks diatas
+        //DoSwap = true;
+        //Serial.println("x:" + String(x));
+  //Serial.println("line:" + String(line));
       }
     
 }

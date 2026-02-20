@@ -107,6 +107,7 @@ byte volume = 10;
 /*============== end ================*/
 
 enum Show{
+ // ANIM_ZONK,
   ANIM_BIGFONT,
   ANIM_TEXT1,
   ANIM_TEXT2,
@@ -122,11 +123,12 @@ enum Show{
 Show show = ANIM_BIGFONT;
 
 enum Line{
+  ANIM_ZONK,
   ANIM_SHOLAT,
   ANIM_MASEHI,
   ANIM_DAY
 };
-Line line = ANIM_MASEHI;
+Line line = ANIM_ZONK;
 
 //#define EEPROM_SIZE 2000
 
@@ -336,8 +338,7 @@ void loop()
   }else{
   switch(show){
     case ANIM_BIGFONT : 
-//      runn();
-//      jamCenter();
+       runn(config.name,50,5);
     break;
 
     case ANIM_DATE :
@@ -345,7 +346,7 @@ void loop()
     break;
 
     case ANIM_NAME :
-    runn(config.text2,50,1);
+    runn(config.name,50,1);
     break;
 
     case ANIM_TEXT1 :
@@ -357,15 +358,15 @@ void loop()
     break;
 
     case ANIM_TEXT3 :
-    runn(config.text2,50,1);
+    runn(config.text3,50,1);
     break;
 
     case ANIM_TEXT4 :
-    runn(config.text2,50,1);
+    runn(config.text4,50,1);
     break;
 
     case ANIM_TEXT5 :
-    runn(config.text2,50,1);
+    runn(config.text5,50,1);
     break;
 
     case ANIM_ADZAN :
@@ -383,6 +384,10 @@ void loop()
   };
 
   switch(line){
+    case ANIM_ZONK :
+
+    break;
+    
     case ANIM_SHOLAT :
       updateAnimSholat();
     break;
@@ -395,8 +400,9 @@ void loop()
       updateAnimUpDown(DAY());
     break;
   };
-  
-  }
+  jamCenter();
+  DoSwap = true;
+}
 
     //buzzerWarning(config.stateBuzzWar);
     yield();
