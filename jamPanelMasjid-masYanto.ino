@@ -22,9 +22,9 @@ JAM_DIGITAL_MASJID_MAS-YANTO 93 X 16
 #define BUZZ    D4 
 
 #define Font0 Font4x6
-#define Font3 BigNumber
-#define Font2 Font3x5
 #define Font1 SystemFont5x7
+#define Font2 Font3x5
+#define Font3 BigNumber
 #define Font4 KecNumber
 #define Font5 EMSans8x16
 #define Font6 Calibri14
@@ -54,7 +54,7 @@ struct Config {
   double longitude = 112.646222;
   uint8_t zonawaktu = 7;
   byte Correction = -1; //Koreksi tanggal hijriyah, -1 untuk mengurangi, 0 tanpa koreksi, 1 untuk menambah
-  uint16_t   brightness    = 10;
+  uint16_t   brightness    = 5;
   uint8_t    speedDate      = 40; // Kecepatan default date
   uint8_t    speedText1     = 40; // Kecepatan default text  
   uint8_t    speedText2     = 40;
@@ -74,7 +74,7 @@ struct Config {
   char text3[250]; 
   char text4[250];
   char text5[250];
-  char name[250];
+  char name[250]="IRFAN ARDIANSYAH";
   
 };
 Config config;
@@ -107,18 +107,22 @@ byte volume = 10;
 /*============== end ================*/
 
 enum Show{
-  ANIM_CLOCK_BIG,
+  ANIM_BIGFONT,
   ANIM_HIJRIAH,
-  ANIM_MASEHI,
   ANIM_DAY,
   ANIM_TEXT1,
   ANIM_TEXT2,
-  ANIM_SHOLAT,
   ANIM_ADZAN,
 };
-Show show = ANIM_CLOCK_BIG;
+Show show = ANIM_BIGFONT;
 
-#define EEPROM_SIZE 512
+enum Line{
+  ANIM_SHOLAT,
+  ANIM_MASEHI
+};
+Line line = ANIM_SHOLAT;
+
+//#define EEPROM_SIZE 2000
 
 #define EEPROM_SIZE       2000
 
@@ -239,7 +243,7 @@ void ICACHE_RAM_ATTR refresh() {
 
 
 void Disp_init_esp() {
-  Disp.setDoubleBuffer(true);
+  Disp.setDoubleBuffer(false);
   Disp.start();
   Disp.clear();
   Disp.setBrightness(config.brightness);
@@ -314,51 +318,56 @@ void loop()
     // =========================================
   handleSetTimeSerial();
   DoSwap  = false ;
-  check();
-  islam();
-  Disp.clear();
-jamCenter();
-//  if (showVolumeTemp) {
-//    tampilkanVolume();
-//    if (millis() - volumeDisplayMillis >= volumeDisplayDuration) {
-//      showVolumeTemp = false;
-//    }
-//  }else{
-//  switch(show){
-//    case ANIM_CLOCK_BIG :
-//      anim_JG();
-//    break;
-//
-//    case ANIM_HIJRIAH :
-//      drawDateHijriah();
-//    break;
-//
-//    case ANIM_MASEHI :
-//      dwMrq(TGLJAWA(),50,2); 
-//    break;
-//
-//    case ANIM_DAY :
-//       drawDays();
-//    break;
-//
-//    case ANIM_TEXT1 :
-//      dwMrq(text1,45,1);
-//    break;
-//
-//    case ANIM_TEXT2 :
-//      dwMrq(text2,45,2);
-//    break;
-//
-//    case ANIM_SHOLAT :
-//      updateAnimSholat();
-//    break;
-//
-//    case ANIM_ADZAN :
-//      drawAzzan();
-//    break;
-//
-//  };
-//  }
+//  check();
+//  islam();
+  //Disp.clear();
+  //
+  if (showVolumeTemp) {
+    tampilkanVolume();
+    if (millis() - volumeDisplayMillis >= volumeDisplayDuration) {
+      showVolumeTemp = false;
+    }
+  }else{
+  switch(show){
+    case ANIM_BIGFONT :
+      //dwMrq(config.name,50,3,3); 
+      runn();
+      jamCenter();
+    break;
+
+    case ANIM_HIJRIAH :
+     // drawDateHijriah();
+    break;
+
+    case ANIM_DAY :
+     //  drawDays();
+    break;
+
+    case ANIM_TEXT1 :
+     // dwMrq(text1,45,1);
+    break;
+
+    case ANIM_TEXT2 :
+    //  dwMrq(text2,45,2);
+    break;
+
+    case ANIM_ADZAN :
+     // drawAzzan();
+    break;
+
+  };
+
+  switch(line){
+    case ANIM_SHOLAT :
+
+    break;
+
+    case ANIM_MASEHI :
+
+    break;
+  };
+  
+  }
 
     //buzzerWarning(config.stateBuzzWar);
     yield();
@@ -881,12 +890,12 @@ void Buzzer(uint8_t state)
   {
     if(!config.stateBuzzer) return;
     
-    switch(state){
+     switch(state){
       case 0 :
-        digitalWrite(BUZZ,HIGH);
+        noTone(BUZZ);
       break;
       case 1 :
-        digitalWrite(BUZZ,LOW);
+        tone(BUZZ,2000);
       break;
     };
   }

@@ -18,28 +18,25 @@ void jamCenter(){
 //    if(adzan) return;
 //    //if(!dwDo(DrawAdd)) return; 
     RtcDateTime now = Rtc.GetDateTime();
-
+//char buff [8];
   if(now.Second() % 2 ){
-//      Disp.drawRect(15, 6, 16, 7, 1); //posisi y = 6
-//      Disp.drawRect(15, 9, 16, 10, 1); //posisi y = 9
       Disp.drawCircle(15,4,1,1);
       Disp.drawCircle(15,11,1,1);
     }else{
-//      Disp.drawRect(15, 6, 16, 7, 0); //posisi y = 5
-//      Disp.drawRect(15, 9, 16, 10, 0); //posisi y = 8
       Disp.drawCircle(15,4,1,0);
       Disp.drawCircle(15,11,1,0);
     }
-    
+    //sprintf(buff,"%02d:%02d",now.Hour(),now.Minute());
     // Tampilkan jam digital
   fType(3);
+  //Disp.drawText(0,0,buff);
   Disp.drawChar(0, 0, '0' + now.Hour() / 10);
   Disp.drawChar(7, 0, '0' + now.Hour() % 10); 
   
   Disp.drawChar(18, 0, '0' + now.Minute() / 10);
   Disp.drawChar(25, 0, '0' + now.Minute() % 10);
-
-  DoSwap = true;
+  Disp.drawRect(0,0,31,16,0);
+  //DoSwap = true;
 }
 /*
 struct SholatAnim {
@@ -442,21 +439,47 @@ void anim_JG()
 
 
 //===================== end ========================//
+*/
+//==================== animasi jam dan running text =================//
+
+void runn(){
+  static uint32_t   x; 
+    static uint32_t fullScroll = 0;
+    uint32_t          Tmr = millis();
+    static uint32_t lss=0;
+    fType(5);
+fullScroll = Disp.textWidth(config.name) + DWidth ; 
+    
+if((Tmr-lss)> 45)
+      { lss=Tmr;
+        if (x < fullScroll) {++x;}
+        else {
+          x = 0; 
+          fullScroll = 0;
+          return;}
+
+        Disp.drawText(DWidth - x, 0, config.name); //runing teks diatas
+         DoSwap = true;
+      }
+    
+}
 
 //==================== animasi jam dan running text =================//
-void dwMrq(const char* msg, int Speed, int dDT) //running teks ada jam nya
+void dwMrq(const char* msg, byte Speed, byte dDT,byte fontt) //running teks ada jam nya
   { 
-    static uint16_t   x; 
+    static uint32_t   x; 
+    static uint32_t fullScroll = 0;
     if(adzan) return;
-    if (reset_x !=0) { x=0; reset_x = 0;}      
+    if (reset_x !=0) { x=0; reset_x = 0; fullScroll = 0;}      
 
     uint32_t          Tmr = millis();
     static uint32_t lss=0;
-    static uint16_t fullScroll = 0;
     
     
+     
     if (fullScroll == 0) { // Hitung hanya sekali
-       fullScroll = Disp.textWidth(msg) + DWidth ; 
+       fType(fontt);
+       (fontt == 5)? fullScroll = Disp.textWidth(msg) + DWidth + 20 : fullScroll = Disp.textWidth(msg) + DWidth ; 
     }   
     
     
@@ -465,17 +488,18 @@ void dwMrq(const char* msg, int Speed, int dDT) //running teks ada jam nya
       { lss=Tmr;
         if (x < fullScroll) {++x;}
         else {
-          if(show == ANIM_MASEHI){ show = ANIM_DAY; }
-          else if(show == ANIM_TEXT1){ show = ANIM_TEXT2; }
-          else if(show == ANIM_TEXT2){ show = ANIM_CLOCK_BIG; }            
+          RtcDateTime now = Rtc.GetDateTime();
+          if(show==ANIM_BIGFONT){show=ANIM_BIGFONT; Serial.println("TIME:" + String(now.Hour()) + "," + String(now.Minute()) + "," + String(now.Second()) + "," + String(now.DayOfWeek()));}
+          //else if(show==ANIM_BIGFONT){show=ANIM_BIGFONT; Serial.println("TIME:" + String(now.Hour()) + "," + String(now.Minute()) + "," + String(now.Second()) + "," + String(now.DayOfWeek()));}
+         // else if(show==ANIM_BIG){show=ANIM_DATE;}
           x = 0; 
           fullScroll = 0;
           return;}
      if(dDT==1)
         {
-        fType(7);  //Marquee    jam yang tampil di bawah
+        //fType(1);  //Marquee    jam yang tampil di bawah
         Disp.drawText(DWidth - x, 0, msg); //runing teks diatas
-        fType(1);
+        //fType(1);
         if (x<=6)                     { drawGreg_TS(16-x);}
         else if (x>=(fullScroll-6))   { drawGreg_TS(16-(fullScroll-x));}
         else                          { drawGreg_TS(9);}//posisi jamnya yang bawah
@@ -483,14 +507,21 @@ void dwMrq(const char* msg, int Speed, int dDT) //running teks ada jam nya
         }
      else if(dDT==2) //jam yang diatas
         {    
-        fType(1);
+        //fType(1);
         if (x<=6)                     { drawGreg_TS(x-6);}
         else if (x>=(fullScroll-6))   { drawGreg_TS((fullScroll-x)-6);}
         else                          { drawGreg_TS(0);}  //posisi jam nya yang diatas
-        fType(7); //Marquee  running teks dibawah
+        //fType(1); //Marquee  running teks dibawah
         Disp.drawText(DWidth - x, 9 , msg);//runinng teks dibawah
         
         }
+      else if(dDT==3) //jam yang diatas
+      {
+        //fType(1);  //Marquee    jam yang tampil di bawah
+        //drawGreg_TS(4);
+        Disp.drawText(DWidth - x, 0, msg); //runing teks diatas
+        Serial.println("x:" + String(x));
+      }
         DoSwap = true;
       }          
      
@@ -500,11 +531,11 @@ void drawGreg_TS(int y)   // Draw Time
   {
     RtcDateTime now = Rtc.GetDateTime();
     char  Buff[8];
-    sprintf(Buff,"%02d:%02d:%02d",now.Hour(),now.Minute(),now.Second());
-    dwCtr(0,y,Buff);
-    DoSwap = true;
+    sprintf(Buff,"%02d:%02d",now.Hour(),now.Minute());
+    Disp.drawText(0,y,Buff);
+    //DoSwap = true;
   }
-*/
+
 //===================== end ========================//
 
 void dwCtr(int x, int y, String Msg){
@@ -515,12 +546,12 @@ void dwCtr(int x, int y, String Msg){
   
 void fType(int x)
   {
-    //if(x==0) Disp.setFont(Font0);
-    if(x==1) Disp.setFont(Font1); 
-    //else if(x==2) Disp.setFont(Font2);
+    if(x==0) Disp.setFont(Font0);
+    else if(x==1) Disp.setFont(Font1); 
+    else if(x==2) Disp.setFont(Font2);
     else if(x==3) Disp.setFont(Font3);
-    //else if(x==4) Disp.setFont(Font4);
+    else if(x==4) Disp.setFont(Font4);
     else if(x==5) Disp.setFont(Font5);
-    //else if(x==6) Disp.setFont(Font6); 
+    else if(x==6) Disp.setFont(Font6); 
     else if(x==7) Disp.setFont(Font7); 
   }
