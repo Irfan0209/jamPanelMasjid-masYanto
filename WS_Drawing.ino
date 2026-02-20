@@ -303,7 +303,15 @@ struct SholatAnim {
   uint32_t timer;
 };
 
+struct MasehiAnim {
+  uint8_t  phase;      // IN / HOLD / OUT
+  uint8_t  sNum;       // index sholat
+  uint8_t  x;          // posisi animasi
+  uint32_t timer;
+};
+
 SholatAnim shAnim;
+MasehiAnim msAnim;
 
 #define SHOLAT_COUNT 7
 #define PHASE_IN     0
@@ -349,7 +357,7 @@ void updateAnimSholat() {
         else {
           shAnim.sNum++;
           if (shAnim.sNum >= SHOLAT_COUNT) {
-            show = ANIM_TEXT1;
+            line = ANIM_MASEHI;
             shAnim.sNum=0;
             return;
           }
@@ -376,13 +384,6 @@ void drawSholatFrame(uint8_t sNum, int8_t x) {
   snprintf(h, sizeof(h), "%02d", now.Hour());
   snprintf(m, sizeof(m), "%02d", now.Minute());
 
-//  fType(3);
-//  Disp.drawText(0, 0, h);
-//  Disp.drawText(19, 0, m);
-//
-//  Disp.drawRect(15, 3, 16, 5, 1);
-//  Disp.drawRect(15, 10, 16, 12, 1);
-
   // ===== SHOLAT =====
   float st = sholatT[sNum];
   uint8_t hh = (uint8_t)st;
@@ -395,16 +396,65 @@ void drawSholatFrame(uint8_t sNum, int8_t x) {
   Disp.drawText(0, x, jadwal[sNum]);
   Disp.drawText(32, x, timeBuf);
 
-  // ===== MASK =====
-//  Disp.drawFilledRect(0, 0, x, 15, 0);
-//  Disp.drawFilledRect(63 - x, 0, 63, 15, 0);
-
-  //Disp.drawFilledRect(0,0,32-x,15,0);
-  //Disp.drawFilledRect(32+x,0,63,15,0);
-
   DoSwap = true;
 }
 
+void initAnimMasehi() {
+  msAnim.phase = PHASE_IN;
+  msAnim.x     = 0;
+  msAnim.timer = millis();
+  Disp.clear();
+}
+
+void updateAnimUpDown(const char* msg) {
+
+  uint32_t now = millis();
+  const uint8_t center = 8;   // 32x16 panel
+
+  switch (msAnim.phase) {
+
+    // ====== MASUK ======
+    case PHASE_IN:
+      if (now - msAnim.timer > 50) {
+        msAnim.timer = now;
+        if (msAnim.x < center) msAnim.x++;
+        else msAnim.phase = PHASE_HOLD;
+      }
+      break;
+
+    // ====== TAHAN ======
+    case PHASE_HOLD:
+      if (now - msAnim.timer > 2000) {
+        msAnim.phase = PHASE_OUT;
+      }
+      break;
+
+    // ====== KELUAR ======
+    case PHASE_OUT:
+      if (now - msAnim.timer > 50) {
+        msAnim.timer = now;
+        if (msAnim.x > 0) msAnim.x--;
+        else {
+          if(line == ANIM_MASEHI){ line = ANIM_DAY; }
+          else if(line == ANIM_DAY){ line = ANIM_SHOLAT; }
+          msAnim.phase = PHASE_IN;
+          return;
+        }
+      }
+      break;
+  }
+
+  drawFrame(msg,msAnim.x-center);
+}
+
+void drawFrame(const char* msg,int8_t x) {
+  
+  fType(1);
+  dwCtr(0,x,msg);
+ 
+  DoSwap = true;
+
+}
 /*/================== animasi jam besar ==================//
 void anim_JG()
   {
@@ -482,24 +532,60 @@ void jamCenter(){
   //DoSwap = true;
 }
 
-void runn(){
-  static uint32_t   x; 
+void runn(const char* msg,uint8_t speed,uint8_t fontt){
+    static uint32_t   x; 
     static uint32_t fullScroll = 0;
     uint32_t          Tmr = millis();
     static uint32_t lss=0;
-    fType(5);
-fullScroll = Disp.textWidth(config.name) + DWidth ; 
     
-if((Tmr-lss)> 45)
+    if(Disp.textWidth(msg) == 0){
+       switch(show){
+        case ANIM_DATE :
+          show = ANIM_TEXT1;
+        break;
+
+        case ANIM_TEXT1 :
+          show = ANIM_TEXT2;
+        break;
+
+        case ANIM_TEXT2 :
+            show = ANIM_DATE;
+        break;
+       };
+      Serial.println("pesan kosong");
+      return;
+     }
+     
+    if (fullScroll == 0) { // Hitung hanya sekali
+       fType(fontt);
+       (fontt == 5)? fullScroll = Disp.textWidth(msg) + DWidth + 20 : fullScroll = Disp.textWidth(msg) + DWidth ; 
+    }   
+     
+     
+     if((Tmr-lss)> speed)
       { lss=Tmr;
         if (x < fullScroll) {++x;}
         else {
           x = 0; 
           fullScroll = 0;
+          msg = "";
+          switch(show){
+           case ANIM_DATE :
+            show = ANIM_TEXT1;
+           break;
+
+           case ANIM_TEXT1 :
+            show = ANIM_TEXT2;
+           break;
+           
+           case ANIM_TEXT2 :
+            show = ANIM_DATE;
+           break;
+          };
           return;}
 
-        Disp.drawText(DWidth - x, 0, config.name); //runing teks diatas
-         DoSwap = true;
+        Disp.drawText(DWidth - x, 0, msg); //runing teks diatas
+        DoSwap = true;
       }
     
 }

@@ -69,7 +69,7 @@ struct Config {
   uint8_t    jamOff       = 0;
   uint8_t    menitOn      = 0;
   uint8_t    menitOff     = 0;
-  char text1[250];
+  char text1[250]="test running text";
   char text2[250];
   char text3[250]; 
   char text4[250];
@@ -108,19 +108,25 @@ byte volume = 10;
 
 enum Show{
   ANIM_BIGFONT,
-  ANIM_HIJRIAH,
-  ANIM_DAY,
   ANIM_TEXT1,
   ANIM_TEXT2,
+  ANIM_TEXT3,
+  ANIM_TEXT4,
+  ANIM_TEXT5,
+  ANIM_NAME,
+  ANIM_DATE,
   ANIM_ADZAN,
+  ANIM_IQOMAH,
+  ANIM_BLINK
 };
 Show show = ANIM_BIGFONT;
 
 enum Line{
   ANIM_SHOLAT,
-  ANIM_MASEHI
+  ANIM_MASEHI,
+  ANIM_DAY
 };
-Line line = ANIM_SHOLAT;
+Line line = ANIM_MASEHI;
 
 //#define EEPROM_SIZE 2000
 
@@ -319,7 +325,7 @@ void loop()
   handleSetTimeSerial();
   DoSwap  = false ;
 //  check();
-//  islam();
+  islam();
   Disp.clear();
   //
   if (showVolumeTemp) {
@@ -329,29 +335,48 @@ void loop()
     }
   }else{
   switch(show){
-    case ANIM_BIGFONT :
-      //dwMrq(config.name,50,3,3); 
+    case ANIM_BIGFONT : 
 //      runn();
 //      jamCenter();
     break;
 
-    case ANIM_HIJRIAH :
-     // drawDateHijriah();
+    case ANIM_DATE :
+     runn(showTanggal(),50,1);
     break;
 
-    case ANIM_DAY :
-     //  drawDays();
+    case ANIM_NAME :
+    runn(config.text2,50,1);
     break;
 
     case ANIM_TEXT1 :
-     // dwMrq(text1,45,1);
+    runn(config.text1,50,1);
     break;
 
     case ANIM_TEXT2 :
-    //  dwMrq(text2,45,2);
+    runn(config.text2,50,1);
+    break;
+
+    case ANIM_TEXT3 :
+    runn(config.text2,50,1);
+    break;
+
+    case ANIM_TEXT4 :
+    runn(config.text2,50,1);
+    break;
+
+    case ANIM_TEXT5 :
+    runn(config.text2,50,1);
     break;
 
     case ANIM_ADZAN :
+     // drawAzzan();
+    break;
+
+    case ANIM_IQOMAH :
+     // drawAzzan();
+    break;
+
+    case ANIM_BLINK :
      // drawAzzan();
     break;
 
@@ -363,7 +388,11 @@ void loop()
     break;
 
     case ANIM_MASEHI :
+      updateAnimUpDown(TGLMASEHI());
+    break;
 
+    case ANIM_DAY :
+      updateAnimUpDown(DAY());
     break;
   };
   
