@@ -296,6 +296,20 @@ void updateAnimSholat() {
 //==================== end =========================//
 
 */
+struct SholatAnim {
+  uint8_t  phase;      // IN / HOLD / OUT
+  uint8_t  sNum;       // index sholat
+  uint8_t  x;          // posisi animasi
+  uint32_t timer;
+};
+
+SholatAnim shAnim;
+
+#define SHOLAT_COUNT 7
+#define PHASE_IN     0
+#define PHASE_HOLD   1
+#define PHASE_OUT    2
+
 void initAnimSholat() {
   shAnim.phase = PHASE_IN;
   shAnim.sNum  = 0;
@@ -313,7 +327,7 @@ void updateAnimSholat() {
 
     // ====== MASUK ======
     case PHASE_IN:
-      if (now - shAnim.timer > 15) {
+      if (now - shAnim.timer > 50) {
         shAnim.timer = now;
         if (shAnim.x < center) shAnim.x++;
         else shAnim.phase = PHASE_HOLD;
@@ -329,7 +343,7 @@ void updateAnimSholat() {
 
     // ====== KELUAR ======
     case PHASE_OUT:
-      if (now - shAnim.timer > 15) {
+      if (now - shAnim.timer > 50) {
         shAnim.timer = now;
         if (shAnim.x > 0) shAnim.x--;
         else {
@@ -362,12 +376,12 @@ void drawSholatFrame(uint8_t sNum, int8_t x) {
   snprintf(h, sizeof(h), "%02d", now.Hour());
   snprintf(m, sizeof(m), "%02d", now.Minute());
 
-  fType(3);
-  Disp.drawText(0, 0, h);
-  Disp.drawText(19, 0, m);
-
-  Disp.drawRect(15, 3, 16, 5, 1);
-  Disp.drawRect(15, 10, 16, 12, 1);
+//  fType(3);
+//  Disp.drawText(0, 0, h);
+//  Disp.drawText(19, 0, m);
+//
+//  Disp.drawRect(15, 3, 16, 5, 1);
+//  Disp.drawRect(15, 10, 16, 12, 1);
 
   // ===== SHOLAT =====
   float st = sholatT[sNum];
@@ -378,8 +392,8 @@ void drawSholatFrame(uint8_t sNum, int8_t x) {
   snprintf(timeBuf, sizeof(timeBuf), "%02d:%02d", hh, mm);
 
   fType(1);
-  dwCtr(0, x, jadwal[sNum]);
-  dwCtr(32, x, timeBuf);
+  Disp.drawText(0, x, jadwal[sNum]);
+  Disp.drawText(32, x, timeBuf);
 
   // ===== MASK =====
 //  Disp.drawFilledRect(0, 0, x, 15, 0);
