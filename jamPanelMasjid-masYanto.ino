@@ -243,7 +243,7 @@ void ICACHE_RAM_ATTR refresh() {
 
 
 void Disp_init_esp() {
-  Disp.setDoubleBuffer(false);
+  Disp.setDoubleBuffer(true);
   Disp.start();
   Disp.clear();
   Disp.setBrightness(config.brightness);
@@ -320,7 +320,7 @@ void loop()
   DoSwap  = false ;
 //  check();
 //  islam();
-  //Disp.clear();
+  Disp.clear();
   //
   if (showVolumeTemp) {
     tampilkanVolume();
@@ -331,8 +331,8 @@ void loop()
   switch(show){
     case ANIM_BIGFONT :
       //dwMrq(config.name,50,3,3); 
-      runn();
-      jamCenter();
+//      runn();
+//      jamCenter();
     break;
 
     case ANIM_HIJRIAH :
@@ -359,7 +359,7 @@ void loop()
 
   switch(line){
     case ANIM_SHOLAT :
-
+      updateAnimSholat();
     break;
 
     case ANIM_MASEHI :

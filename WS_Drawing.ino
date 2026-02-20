@@ -14,30 +14,30 @@ char * namaBulanHijriah[] = {
 };
 //
 
-void jamCenter(){
-//    if(adzan) return;
-//    //if(!dwDo(DrawAdd)) return; 
-    RtcDateTime now = Rtc.GetDateTime();
-//char buff [8];
-  if(now.Second() % 2 ){
-      Disp.drawCircle(15,4,1,1);
-      Disp.drawCircle(15,11,1,1);
-    }else{
-      Disp.drawCircle(15,4,1,0);
-      Disp.drawCircle(15,11,1,0);
-    }
-    //sprintf(buff,"%02d:%02d",now.Hour(),now.Minute());
-    // Tampilkan jam digital
-  fType(3);
-  //Disp.drawText(0,0,buff);
-  Disp.drawChar(0, 0, '0' + now.Hour() / 10);
-  Disp.drawChar(7, 0, '0' + now.Hour() % 10); 
-  
-  Disp.drawChar(18, 0, '0' + now.Minute() / 10);
-  Disp.drawChar(25, 0, '0' + now.Minute() % 10);
-  Disp.drawRect(0,0,31,16,0);
-  //DoSwap = true;
-}
+//void jamCenter(){
+////    if(adzan) return;
+////    //if(!dwDo(DrawAdd)) return; 
+//    RtcDateTime now = Rtc.GetDateTime();
+////char buff [8];
+//  if(now.Second() % 2 ){
+//      Disp.drawCircle(15,4,1,1);
+//      Disp.drawCircle(15,11,1,1);
+//    }else{
+//      Disp.drawCircle(15,4,1,0);
+//      Disp.drawCircle(15,11,1,0);
+//    }
+//    sprintf(buff,"%02d:%02d",now.Hour(),now.Minute());
+//    // Tampilkan jam digital
+//  fType(3);
+//  //Disp.drawText(0,0,buff);
+//  Disp.drawChar(0, 0, '0' + now.Hour() / 10);
+//  Disp.drawChar(7, 0, '0' + now.Hour() % 10); 
+//  
+//  Disp.drawChar(18, 0, '0' + now.Minute() / 10);
+//  Disp.drawChar(25, 0, '0' + now.Minute() % 10);
+//  Disp.drawRect(0,0,31,16,0);
+//  //DoSwap = true;
+//}
 /*
 struct SholatAnim {
   uint8_t  phase;      // IN / HOLD / OUT
@@ -295,7 +295,7 @@ void updateAnimSholat() {
 
 //==================== end =========================//
 
-/*
+*/
 void initAnimSholat() {
   shAnim.phase = PHASE_IN;
   shAnim.sNum  = 0;
@@ -307,7 +307,7 @@ void initAnimSholat() {
 void updateAnimSholat() {
 
   uint32_t now = millis();
-  const uint8_t center = 32;   // 32x16 panel
+  const uint8_t center = 8;   // 32x16 panel
 
   switch (shAnim.phase) {
 
@@ -345,10 +345,10 @@ void updateAnimSholat() {
       break;
   }
 
-  drawSholatFrame(shAnim.sNum, shAnim.x);
+  drawSholatFrame(shAnim.sNum, shAnim.x-center);
 }
 
-void drawSholatFrame(uint8_t sNum, uint8_t x) {
+void drawSholatFrame(uint8_t sNum, int8_t x) {
 
   if (sNum >= SHOLAT_COUNT) return;
 
@@ -378,18 +378,18 @@ void drawSholatFrame(uint8_t sNum, uint8_t x) {
   snprintf(timeBuf, sizeof(timeBuf), "%02d:%02d", hh, mm);
 
   fType(1);
-  dwCtr(33, 0, jadwal[sNum]);
-  dwCtr(33, 9, timeBuf);
+  dwCtr(0, x, jadwal[sNum]);
+  dwCtr(32, x, timeBuf);
 
   // ===== MASK =====
 //  Disp.drawFilledRect(0, 0, x, 15, 0);
 //  Disp.drawFilledRect(63 - x, 0, 63, 15, 0);
 
   //Disp.drawFilledRect(0,0,32-x,15,0);
-  Disp.drawFilledRect(32+x,0,63,15,0);
+  //Disp.drawFilledRect(32+x,0,63,15,0);
 
   DoSwap = true;
-}*/
+}
 
 /*/================== animasi jam besar ==================//
 void anim_JG()
@@ -441,6 +441,32 @@ void anim_JG()
 //===================== end ========================//
 */
 //==================== animasi jam dan running text =================//
+
+void jamCenter(){
+//    if(adzan) return;
+//    //if(!dwDo(DrawAdd)) return; 
+    RtcDateTime now = Rtc.GetDateTime();
+  Disp.drawFilledRect(0, 0, 31, 16, 0);
+  if(now.Second() % 2 ){
+      Disp.drawCircle(15,4,1,1);
+      Disp.drawCircle(15,11,1,1);
+    }else{
+      Disp.drawCircle(15,4,1,0);
+      Disp.drawCircle(15,11,1,0);
+    }
+//    sprintf(buff,"%02d:%02d",now.Hour(),now.Minute());
+    // Tampilkan jam digital
+  fType(3);
+  
+  
+  Disp.drawChar(0, 0, '0' + now.Hour() / 10);
+  Disp.drawChar(7, 0, '0' + now.Hour() % 10); 
+  
+  Disp.drawChar(18, 0, '0' + now.Minute() / 10);
+  Disp.drawChar(25, 0, '0' + now.Minute() % 10);
+ // Disp.drawRect(0,0,31,16,0);
+  //DoSwap = true;
+}
 
 void runn(){
   static uint32_t   x; 
