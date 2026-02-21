@@ -69,12 +69,13 @@ struct Config {
   uint8_t    jamOff       = 0;
   uint8_t    menitOn      = 0;
   uint8_t    menitOff     = 0;
-  char text1[250]="test running text";
-  char text2[250];
-  char text3[250]; 
-  char text4[250];
-  char text5[250];
-  char name[250]="IRFAN ARDIANSYAH";
+  char text1[250]="test running text 1";
+  char text2[250]="test running text 2";
+  char text3[250]="test running text 3";
+  char text4[250]="test running text 4";
+  char text5[250]="test running text 5";
+  char name[250]="MASJID BAITUR ROHMAN";
+  char ctrJadwal[25];
   
 };
 Config config;
@@ -118,7 +119,8 @@ enum Show{
   ANIM_DATE,
   ANIM_ADZAN,
   ANIM_IQOMAH,
-  ANIM_BLINK
+  ANIM_BLINK,
+  ANIM_COUNTER
 };
 Show show = ANIM_BIGFONT;
 
@@ -326,7 +328,7 @@ void loop()
     // =========================================
   handleSetTimeSerial();
   DoSwap  = false ;
-//  check();
+  check();
   islam();
   Disp.clear();
   //
@@ -381,6 +383,13 @@ void loop()
      // drawAzzan();
     break;
 
+    case ANIM_COUNTER :
+     updateNowTime();
+     updateSholatNow();
+     runn(tampilSelisih(),50,1);
+    break;
+
+
   };
 
   switch(line){
@@ -401,7 +410,7 @@ void loop()
     break;
   };
   jamCenter();
-  DoSwap = true;
+  
 }
 
     //buzzerWarning(config.stateBuzzWar);

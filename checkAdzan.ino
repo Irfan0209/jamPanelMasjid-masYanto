@@ -3,7 +3,13 @@ static float lastStime[5] = { -1, -1, -1, -1, -1 };
 static uint8_t sholatHour[5];
 static uint8_t sholatMinute[5];
 static bool adzanFlag[5] = { 0 };
+uint32_t sholatSec[5];   // waktu sholat (detik)
 
+//===================== convert jam & menit ke detik =============================//
+inline uint32_t toSecond(uint8_t h, uint8_t m, uint8_t s = 0)
+{
+  return (uint32_t)h * 3600UL + (uint32_t)m * 60UL + s;
+}
 
 //================= cek waktu sholat (REFRAKTOR) ===================//
 void check() {
@@ -64,6 +70,12 @@ void check() {
         }
       }
     }
+
+    if(counter == 0){sholatSec[1] = toSecond(h, m); }
+    else if(counter == 1){sholatSec[2] = toSecond(h, m); }
+    else if(counter == 2){sholatSec[3] = toSecond(h, m); }
+    else if(counter == 3){sholatSec[4] = toSecond(h, m); }
+    else if(counter == 4){sholatSec[5] = toSecond(h, m); }
 
     // reset flag jika waktu sudah lewat
     if (jam != h || menit != m) {
