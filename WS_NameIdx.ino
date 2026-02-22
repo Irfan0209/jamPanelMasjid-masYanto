@@ -27,15 +27,6 @@ char * showTanggal(){
   static char buff_date[60];
 
    RtcDateTime now = Rtc.GetDateTime();
-
-//    const char *pasar[] = {"WAGE","KLIWON","LEGI","PAHING","PON"};
-//    const char *Hari[]  = {"MINGGU","SENIN","SELASA","RABU","KAMIS","JUM'AT","SABTU"};
-//    const char *namaBulanHijriah[] = {
-//      "MUHARRAM","SHAFAR","RABIUL AWAL","RABIUL AKHIR",
-//      "JUMADIL AWAL","JUMADIL AKHIR","RAJAB",
-//      "SYA'BAN","RAMADHAN","SYAWAL",
-//      "DZULQA'DAH","DZULHIJAH"
-//    };
     
   snprintf(
       buff_date,sizeof(buff_date),

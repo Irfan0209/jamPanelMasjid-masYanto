@@ -52,6 +52,7 @@ void updateAnimSholat() {
     shAnim.x     = 0;
     reset_x = 0;
   }
+  RtcDateTime noww = Rtc.GetDateTime();
   uint32_t now = millis();
   constexpr uint8_t center = 8;   // 32x16 panel
 
@@ -82,6 +83,7 @@ void updateAnimSholat() {
           shAnim.sNum++;
           if (shAnim.sNum >= SHOLAT_COUNT) {
             line = ANIM_MASEHI;
+            Serial.println("TIME:" + String(noww.Hour()) + "," + String(noww.Minute()) + "," + String(noww.Second()) + "," + String(noww.DayOfWeek()));
             shAnim.sNum=0;
             return;
           }
@@ -269,7 +271,8 @@ void runn(const char* msg, uint8_t speed, uint8_t fontt)
 }
 
 void nextShowState()
-{
+{ 
+  
   switch(show){
     case ANIM_BIGFONT: show = ANIM_DATE;  line = ANIM_SHOLAT; break;
     case ANIM_DATE:    show = ANIM_TEXT1; break;

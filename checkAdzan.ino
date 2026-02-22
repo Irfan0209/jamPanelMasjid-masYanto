@@ -55,7 +55,7 @@ void check() {
 
     if (!adzanFlag[counter]) {
       if (jam == h && menit == m && detik == 0) {
-          Serial.println("adzan");
+          //Serial.println("adzan");
         // Jumat - Dzuhur tidak adzan
         if (!(day == 5 && counter == 1)) {
           sholatNow = counter;
