@@ -5,9 +5,18 @@ void islam() {
   RtcDateTime now = Rtc.GetDateTime();
   static uint32_t sv=0;
   
-  if(now.Hour() == 00 && now.Minute() == 00 && now.Second() == 00){
+  cekJadwalPanel(now.Hour(), now.Minute());
+  //========================================//
+ static int lastHalfPlay = -1;
+
+  // Bunyi jam tepat
+  if (now.Minute() == 0 && now.Second() == 0 && now.Hour() != lastHalfPlay && config.stateBuzzerClock) {
+    lastHalfPlay = now.Hour();
     stateBuzzWar = 1;
+    Serial.println("state buzzer aktif");
   }
+
+  //========================================//
 
   if(millis() - sv > 5000){
     JWS.Update(config.zonawaktu, config.latitude, config.longitude, config.altitude, now.Year(), now.Month(), now.Day()); // Jalankan fungsi ini untuk update jadwal sholat
