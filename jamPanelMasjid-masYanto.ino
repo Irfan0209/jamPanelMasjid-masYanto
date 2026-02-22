@@ -588,6 +588,43 @@ void getData(String input) {
       EEPROM.write(ADDR_STATEALARM, config.stateAlarm);
     }
 
+    else if (key == "alarmOn") {
+      // Format value: HH:MM
+      int colon = value.indexOf(':');
+      if (colon != -1) {
+        uint8_t h = value.substring(0, colon).toInt();
+        uint8_t m = value.substring(colon + 1).toInt();
+
+        // Validasi waktu
+        if (h <= 23 && m <= 59) {
+          config.jamOn   = h;
+          config.menitOn = m;
+
+          // jika mau disimpan ke EEPROM (opsional)
+          // saveIntToEEPROM(ADDR_JAM_ON, jamOn);
+          // saveIntToEEPROM(ADDR_MENIT_ON, menitOn);
+        }
+      }
+    }
+
+    else if (key == "alarmOff") {
+      // Format: HH:MM
+      int colon = value.indexOf(':');
+      if (colon != -1) {
+        uint8_t h = value.substring(0, colon).toInt();
+        uint8_t m = value.substring(colon + 1).toInt();
+
+        if (h <= 23 && m <= 59) {
+          config.jamOff    = h;
+          config.menitOff = m;
+
+          // opsional EEPROM
+          // saveIntToEEPROM(ADDR_JAM_OFF, jamOff);
+          // saveIntToEEPROM(ADDR_MENIT_OFF, menitOff);
+        }
+      }
+    }
+
     //fungsi mode dimatikan untuk kontroller arduino
     else if (key == "mode") {
      config.stateMode = value.toInt();

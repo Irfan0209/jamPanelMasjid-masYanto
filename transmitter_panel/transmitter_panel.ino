@@ -3,7 +3,7 @@
 #include <ESP8266WebServer.h>
 #include <WebSocketsServer.h>
 #include <ESP_EEPROM.h>
-#include <ArduinoOTA.h>
+//#include <ArduinoOTA.h>
 
 #define EEPROM_SIZE 512
 #define ADDR_MODE        0
@@ -12,9 +12,9 @@
 char ssid[20]     = "JAM_PANEL";
 char password[20] = "00000000";
 
-const char* otaSsid = "KELUARGA02";
-const char* otaPass = "khusnul23";
-const char* otaHost = "SERVER";
+//const char* otaSsid = "KELUARGA02";
+//const char* otaPass = "khusnul23";
+//const char* otaHost = "SERVER";
 
 ESP8266WebServer server(80);
 WebSocketsServer webSocket(81);
@@ -111,6 +111,27 @@ void handleSetTime() {
     getData(data);
     server.send(200, "text/plain", "OK");//"Kecepatan info 2 berhasil diupdate");
   }
+  if (server.hasArg("Sptx3")) {
+    data = server.arg("Sptx3"); // Atur kecepatan text
+    data = "Sptx3=" + data;
+    //Serial.println(data);
+    getData(data);
+    server.send(200, "text/plain", "OK");//"Kecepatan info 2 berhasil diupdate");
+  }
+  if (server.hasArg("Sptx4")) {
+    data = server.arg("Sptx4"); // Atur kecepatan text
+    data = "Sptx4=" + data;
+    //Serial.println(data);
+    getData(data);
+    server.send(200, "text/plain", "OK");//"Kecepatan info 2 berhasil diupdate");
+  }
+  if (server.hasArg("Sptx5")) {
+    data = server.arg("Sptx5"); // Atur kecepatan text
+    data = "Sptx5=" + data;
+    //Serial.println(data);
+    getData(data);
+    server.send(200, "text/plain", "OK");//"Kecepatan info 2 berhasil diupdate");
+  }
   if (server.hasArg("Spnm")) {
     data = server.arg("Spnm"); // Atur kecepatan text
     data = "Spnm=" + data;
@@ -176,7 +197,7 @@ void handleSetTime() {
   }
   if (server.hasArg("CoHi")) {
     data = server.arg("CoHi"); // Atur latitude    data = "CoHi=" + data;
-
+    data = "CoHi=" + data;
     //Serial.println(data);
     getData(data);
     server.send(200, "text/plain", "OK");//"coreksi hijriah diupdate");
@@ -185,6 +206,34 @@ void handleSetTime() {
   if (server.hasArg("Bzr")) {
     data = server.arg("Bzr"); // Atur status buzzer
     data = "Bzr=" + data;
+    //Serial.println(data);
+    getData(data);
+    server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
+  }
+  if (server.hasArg("bzrClkr")) {
+    data = server.arg("bzrClk"); // Atur status buzzer
+    data = "bzrClk=" + data;
+    //Serial.println(data);
+    getData(data);
+    server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
+  }
+  if (server.hasArg("alarm")) {
+    data = server.arg("alarm"); // Atur status buzzer
+    data = "alarm=" + data;
+    //Serial.println(data);
+    getData(data);
+    server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
+  }
+  if (server.hasArg("alarmOn")) {
+    data = server.arg("alarmOn"); // Atur status buzzer
+    data = "alarmOn=" + data;
+    //Serial.println(data);
+    getData(data);
+    server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
+  }
+  if (server.hasArg("alarmOff")) {
+    data = server.arg("alarmOff"); // Atur status buzzer
+    data = "alarmOff=" + data;
     //Serial.println(data);
     getData(data);
     server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
@@ -289,28 +338,6 @@ void AP_init() {
   webSocket.onEvent(webSocketEvent);
 }
 
-void ONLINE() {
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(otaSsid, otaPass);
-
-  while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-    //Serial.println("OTA WiFi gagal. Rebooting...");
-    delay(5000);
-    ESP.restart();
-  }
-
-  ArduinoOTA.setHostname(otaHost);
- 
-  ArduinoOTA.onEnd([]() {
-    Serial.println("restart=1");
-    delay(1000);
-    ESP.restart();
-  });
-  
-  ArduinoOTA.begin();
-  //Serial.println("OTA Ready");
-}
-
 void kirimDataKeClient(String data) {
 
   for (uint8_t i = 0; i < 5; i++) {
@@ -347,31 +374,13 @@ int getIntPart(String &s, int &pos) {
 void setup() {
   Serial.begin(9600);
   EEPROM.begin(EEPROM_SIZE);
-  modeOTA = EEPROM.read(ADDR_MODE);
-
-  if (modeOTA) {
-    EEPROM.write(ADDR_MODE, 0);
-    EEPROM.commit();
-    ONLINE();
-  } else {
+ 
     AP_init();
-  }
+ 
 }
 
 void loop() {
-  if (modeOTA) {
-    ArduinoOTA.handle();
-    if (Serial.available()) {
-      String input = Serial.readStringUntil('\n');
-      input.trim();
-      if (input.equalsIgnoreCase("restart")) {
-        delay(1000);
-        ESP.restart();
-      }
-    }
-  } else {
     server.handleClient();
     webSocket.loop();
     cekSerialMonitor();
-  }
 }
