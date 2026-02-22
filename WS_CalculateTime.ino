@@ -13,7 +13,7 @@ void islam() {
   if (now.Minute() == 0 && now.Second() == 0 && now.Hour() != lastHalfPlay && config.stateBuzzerClock) {
     lastHalfPlay = now.Hour();
     stateBuzzWar = 1;
-    Serial.println("state buzzer aktif");
+   // Serial.println("state buzzer aktif");
   }
 
   //========================================//

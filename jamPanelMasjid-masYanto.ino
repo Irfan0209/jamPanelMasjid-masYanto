@@ -49,34 +49,34 @@ uint8_t displayBlink[]  = {1,1,1,1,1,1};
 uint8_t dataIhty[]      = {0,0,0,0,0,0};
 
 struct Config {
-  uint8_t durasiadzan = 40;
-  uint8_t altitude = 10;
-  double latitude = -7.364057;
-  double longitude = 112.646222;
-  uint8_t zonawaktu = 7;
-  byte Correction = -1; //Koreksi tanggal hijriyah, -1 untuk mengurangi, 0 tanpa koreksi, 1 untuk menambah
-  uint16_t   brightness    = 5;
-  uint8_t    speedDate      = 40; // Kecepatan default date
-  uint8_t    speedText1     = 40; // Kecepatan default text  
-  uint8_t    speedText2     = 40;
-  uint8_t    speedText3     = 40;
-  uint8_t    speedText4     = 40;
-  uint8_t    speedText5     = 40;
-  uint8_t    speedName      = 40;
-  bool       stateMode       = 0;
-  bool       stateBuzzerClock = false;
-  bool       stateBuzzer   = 1;
-  bool       stateAlarm   = false;
-  uint8_t    jamOn        = 0;
-  uint8_t    jamOff       = 0;
-  uint8_t    menitOn      = 0;
-  uint8_t    menitOff     = 0;
-  char text1[250]="test running text 1";
+  uint8_t durasiadzan;
+  uint8_t altitude ;
+  double latitude ;
+  double longitude ;
+  uint8_t zonawaktu;
+  int Correction ; //Koreksi tanggal hijriyah, -1 untuk mengurangi, 0 tanpa koreksi, 1 untuk menambah
+  uint16_t   brightness;//    = 5;
+  uint8_t    speedDate;//      = 40; // Kecepatan default date
+  uint8_t    speedText1;//     = 40; // Kecepatan default text  
+  uint8_t    speedText2;//     = 40;
+  uint8_t    speedText3; //    = 40;
+  uint8_t    speedText4;//     = 40;
+  uint8_t    speedText5;//     = 40;
+  uint8_t    speedName;//      = 40;
+  bool       stateMode;//       = 0;
+  bool       stateBuzzerClock;// = false;
+  bool       stateBuzzer;//   = 1;
+  bool       stateAlarm ;//  = false;
+  uint8_t    jamOn ;//       = 0;
+  uint8_t    jamOff ;//      = 0;
+  uint8_t    menitOn ;//     = 0;
+  uint8_t    menitOff ;//    = 0;
+  char text1[250];//="test running text 1";
   char text2[250];
-  char text3[250]="test running text 3";
-  char text4[250]="test running text 4";
-  char text5[250]="test running text 5";
-  char name[250]="MASJID BAITUR ROHMAN";
+  char text3[250];//="test running text 3";
+  char text4[250];//="test running text 4";
+  char text5[250];//="test running text 5";
+  char name[250];//="MASJID BAITUR ROHMAN";
   char ctrJadwal[30];
   
 };
@@ -86,8 +86,8 @@ uint8_t    DWidth        = Disp.width();
 uint8_t    DHeight       = Disp.height();
 
 // Variabel untuk waktu, tanggal, teks berjalan, tampilan ,dan kecerahan
-bool       adzan         = 1;
-uint8_t    sholatNow     = 1;
+bool       adzan         = 0;
+uint8_t    sholatNow     = -1;
 bool       reset_x       = 0; 
 /*======library tambahan=======*/
 bool       flagAnim = false;
@@ -97,7 +97,7 @@ bool       stateSendSholat = false;
 bool       stateBuzzWar    = 0;
 bool       counterName     = 1;
 bool       DoSwap          = false;
-bool panelState = false; // false = OFF, true = ON
+bool       panelState = false; // false = OFF, true = ON
 
 bool showVolumeTemp = false;
 uint32_t volumeDisplayMillis = 0;
@@ -282,7 +282,7 @@ void setup()
   Rtc.Enable32kHzPin(false);
   Rtc.SetSquareWavePin(DS3231SquareWavePin_ModeNone);
   
-  //loadFromEEPROM();
+  loadFromEEPROM();
   
   delay(1000);
   
@@ -322,35 +322,35 @@ void loop()
   }else{
   switch(show){
     case ANIM_BIGFONT : 
-       runn(config.name,50,5);
+       runn(config.name,config.speedName,5);
     break;
 
     case ANIM_DATE :
-     runn(showTanggal(),50,1);
+     runn(showTanggal(),config.speedDate,1);
     break;
 
     case ANIM_NAME :
-    runn(config.name,50,1);
+    runn(config.name,config.speedName,1);
     break;
 
     case ANIM_TEXT1 :
-    runn(config.text1,50,1);
+    runn(config.text1,config.speedText1,1);
     break;
 
     case ANIM_TEXT2 :
-    runn(config.text2,50,1);
+    runn(config.text2,config.speedText2,1);
     break;
 
     case ANIM_TEXT3 :
-    runn(config.text3,50,1);
+    runn(config.text3,config.speedText3,1);
     break;
 
     case ANIM_TEXT4 :
-    runn(config.text4,50,1);
+    runn(config.text4,config.speedText4,1);
     break;
 
     case ANIM_TEXT5 :
-    runn(config.text5,50,1);
+    runn(config.text5,config.speedText5,1);
     break;
 
     case ANIM_ADZAN :
@@ -397,7 +397,7 @@ void loop()
   jamCenter();
   
 }
-
+    buzzerWarning(stateBuzzWar);
     yield();
     if(DoSwap){Disp.swapBuffers();} // Swap Buffer if Change
 
@@ -442,7 +442,7 @@ void getData(String input) {
         int indexText = value.substring(0, separatorIndex).toInt();
         String pesan = value.substring(separatorIndex + 1);
 
-        if (pesan.length() > 100) pesan = pesan.substring(0, 100);
+        if (pesan.length() > 250) pesan = pesan.substring(0, 250);
 
         if (indexText == 1) {
           pesan.toCharArray(config.text1, 251);
@@ -467,10 +467,10 @@ void getData(String input) {
     }
 
     else if (key == "name") {
-       if (value.length() > 100) {value = value.substring(0, 100);} // Batasi max 100 karakter
-       value.toCharArray(config.name, 101); // +1 untuk null-terminator
+       if (value.length() > 250) {value = value.substring(0, 250);} // Batasi max 100 karakter
+       value.toCharArray(config.name, 251); // +1 untuk null-terminator
        Serial.println(config.name);
-       saveStringToEEPROM(ADDR_NAME, String(config.name), 100);
+       saveStringToEEPROM(ADDR_NAME, String(config.name), 250);
 
       Buzzer(1);
       delay(500);
@@ -583,7 +583,7 @@ void getData(String input) {
 
     else if (key == "bzrClk") {
       config.stateBuzzerClock = value.toInt();
-      EEPROM.write(ADDR_BUZZER, config.stateBuzzerClock);
+      EEPROM.write(ADDR_BUZZER_CLOCK, config.stateBuzzerClock);
     }
 
     else if (key == "alarm") {
@@ -916,9 +916,9 @@ void buzzerWarning(int cek){
     if(tmr - save > 2500 && cek == 1){
       save = tmr;
       state = !state;
-      digitalWrite(BUZZ, state);
+      Buzzer(state);
       if(con <= 6) { con++; }
-      if(con == 7) { cek = 0; con = 0; state = false; stateBuzzWar = 0; }
+      if(con == 7) { Buzzer(0); cek = 0; con = 0; state = false; stateBuzzWar = 0; }
     } 
     
 }

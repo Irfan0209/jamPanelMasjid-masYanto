@@ -5,13 +5,13 @@ char * const Hari[]  = {"MINGGU","SENIN","SELASA","RABU","KAMIS","JUM'AT","SABTU
 //const char * const bulanMasehi[] PROGMEM = {"JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER" };
 char* jadwal[] = {"IMSAK","SUBUH", "TERBT", "DUHUR", "ASHAR", "MAGRB", "ISYA'"};
 char* jadwalAzzan[] = {"SUBUH","DZUHUR", "ASHAR", "MAGRIB", "ISYA'"};
-//char * namaBulanHijriah[] = {
-//    "MUHARRAM", "SHAFAR", "RABIUL AWAL",
-//    "RABIUL AKHIR", "JUMADIL AWAL", 
-//    "JUMADIL AKHIR", "RAJAB",
-//    "SYA'BAN", "RAMADHAN", "SYAWAL",
-//    "DZULQA'DAH", "DZULHIJAH"
-//};
+char * namaBulanHijriah[] = {
+    "MUHARRAM", "SHAFAR", "RABIUL AWAL",
+    "RABIUL AKHIR", "JUMADIL AWAL", 
+    "JUMADIL AKHIR", "RAJAB",
+    "SYA'BAN", "RAMADHAN", "SYAWAL",
+    "DZULQA'DAH", "DZULHIJAH"
+};
 
 struct SholatAnim {
   uint8_t  phase;      // IN / HOLD / OUT
@@ -93,6 +93,12 @@ void updateAnimSholat() {
 
   drawSholatFrame(shAnim.sNum, shAnim.x-center);
 }
+uint16_t sholatSec[5];   // waktu sholat (detik)
+//===================== convert jam & menit ke detik =============================//
+inline uint32_t toSecond(uint8_t h, uint8_t m, uint8_t s = 0)
+{
+  return (uint32_t)h * 3600UL + (uint32_t)m * 60UL + s;
+}
 
 void drawSholatFrame(uint8_t sNum, int8_t x) {
 
@@ -105,6 +111,13 @@ void drawSholatFrame(uint8_t sNum, int8_t x) {
   uint8_t hh = (uint8_t)st;
   uint8_t mm = (uint8_t)((st - hh) * 60);
 
+    if(sNum == 1){sholatSec[1] = toSecond(hh, mm); }
+    else if(sNum == 3){sholatSec[2] = toSecond(hh, mm); }
+    else if(sNum == 4){sholatSec[3] = toSecond(hh, mm); }
+    else if(sNum == 5){sholatSec[4] = toSecond(hh, mm); }
+    else if(sNum == 6){sholatSec[5] = toSecond(hh, mm); }
+
+   //Serial.println("hh:"+String(hh)+" "+"mm:"+String(mm));
   char timeBuf[6];
   snprintf(timeBuf, sizeof(timeBuf), "%02d:%02d", hh, mm);
 
@@ -113,6 +126,8 @@ void drawSholatFrame(uint8_t sNum, int8_t x) {
   Disp.drawText(65, x, timeBuf);
 
 }
+
+
 
 void initAnimMasehi() {
   msAnim.phase = PHASE_IN;

@@ -76,6 +76,7 @@ char * tampilSelisih()
 
 void cekJadwalPanel(uint8_t jamNow, uint8_t menitNow) {
   if(!config.stateAlarm) return;
+  
   // Hitung waktu sekarang & jadwal dalam menit
   uint16_t nowTime  = jamNow * 60 + menitNow;
   uint16_t onTime   = config.jamOn * 60 + config.menitOn;
