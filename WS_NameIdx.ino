@@ -3,14 +3,21 @@
 char * TGLMASEHI()
   {
     static char  out[12];
-    sprintf(out,"%02d-%02d-%04d",now.Day(),now.Month(),now.Year());
+    snprintf(out,sizeof(out),"%02d-%02d-%04d",now.Day(),now.Month(),now.Year());
     return out;     
   }
 
-char * DAY()
+char * NASIONAL()
   {
-    static char  out[15];
-    sprintf(out,"%s %s",Hari[now.DayOfWeek()],pasar[jumlahhari() % 5]);
+    static char  out[8];
+    snprintf(out,sizeof(out),"%s",Hari[now.DayOfWeek()]);
+    return out;     
+  }
+
+char * PASARAN()
+  {
+    static char  out[8];
+    snprintf(out,sizeof(out),"%s",pasar[jumlahhari() % 5]);
     return out;     
   }
 
@@ -19,7 +26,7 @@ char * showTanggal(){
 
    RtcDateTime now = Rtc.GetDateTime();
 
-   const char *pasar[] = {"WAGE","KLIWON","LEGI","PAHING","PON"};
+    const char *pasar[] = {"WAGE","KLIWON","LEGI","PAHING","PON"};
     const char *Hari[]  = {"MINGGU","SENIN","SELASA","RABU","KAMIS","JUM'AT","SABTU"};
     const char *namaBulanHijriah[] = {
       "MUHARRAM","SHAFAR","RABIUL AWAL","RABIUL AKHIR",
@@ -28,8 +35,8 @@ char * showTanggal(){
       "DZULQA'DAH","DZULHIJAH"
     };
     
-  sprintf(
-      buff_date,
+  snprintf(
+      buff_date,sizeof(buff_date),
       "%s %s %02d-%02d-%04d %02d %s %02dH",
       Hari[now.DayOfWeek()],
       pasar[jumlahhari() % 5],

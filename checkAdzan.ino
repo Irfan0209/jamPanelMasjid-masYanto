@@ -3,7 +3,7 @@ static float lastStime[5] = { -1, -1, -1, -1, -1 };
 static uint8_t sholatHour[5];
 static uint8_t sholatMinute[5];
 static bool adzanFlag[5] = { 0 };
-uint32_t sholatSec[5];   // waktu sholat (detik)
+uint16_t sholatSec[5];   // waktu sholat (detik)
 
 //===================== convert jam & menit ke detik =============================//
 inline uint32_t toSecond(uint8_t h, uint8_t m, uint8_t s = 0)

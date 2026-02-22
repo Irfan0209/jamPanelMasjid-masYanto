@@ -1,4 +1,4 @@
-
+//=================== menghitung nilai volume =======================//
 void setVolume(byte newVolume) {
 
   if (newVolume > MAX_VOLUME) {
@@ -28,8 +28,6 @@ void setVolume(byte newVolume) {
 
 uint32_t nowSec;         // waktu sekarang (detik)
 uint8_t  SholatNow;      // sholat aktif sekarang
-
-
 
 void updateNowTime()
 {
@@ -71,7 +69,7 @@ char * tampilSelisih()
   uint8_t detik = sisa % 60;
 
 
-  sprintf(config.ctrJadwal,"%s %s -%02u:%02u:%02u","menuju waktu",jadwalAzzan[NEXT_SHOLAT[SholatNow]-1], jam, menit, detik);
+  snprintf(config.ctrJadwal,sizeof(config.ctrJadwal),"%s %s -%02u:%02u:%02u","menuju waktu",jadwalAzzan[NEXT_SHOLAT[SholatNow]-1], jam, menit, detik);
   return config.ctrJadwal;
  
 }

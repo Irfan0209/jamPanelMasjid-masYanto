@@ -12,12 +12,12 @@ JAM_DIGITAL_MASJID_MAS-YANTO 93 X 16
 #include <C:\Users\irfan\Documents\Arduino\libraries\DMDESP-master\fonts/EMSans8x16.h>
 #include <C:\Users\irfan\Documents\Arduino\libraries\DMDESP-master\fonts/Calibri14.h>  
 #include <C:\Users\irfan\Documents\Arduino\libraries\DMDESP-master\fonts/Mono5x7.h>
+//#include <C:\Users\irfan\Documents\Arduino\libraries\DMDESP-master\fonts/ElektronMartArabic5x6.h>
 
 #include <Wire.h>
 #include <RtcDS3231.h>
 #include <Prayer.h>
 #include <ESP_EEPROM.h>
-#include <MemoryFree.h>
 
 #define BUZZ    D4 
 
@@ -29,6 +29,7 @@ JAM_DIGITAL_MASJID_MAS-YANTO 93 X 16
 #define Font5 EMSans8x16
 #define Font6 Calibri14
 #define Font7 SystemFont5x7
+//#define Font8 ElektronMartArabic5x6
 
 char password[20] = "00000000";
 
@@ -70,12 +71,12 @@ struct Config {
   uint8_t    menitOn      = 0;
   uint8_t    menitOff     = 0;
   char text1[250]="test running text 1";
-  char text2[250]="test running text 2";
+  char text2[250];
   char text3[250]="test running text 3";
   char text4[250]="test running text 4";
   char text5[250]="test running text 5";
   char name[250]="MASJID BAITUR ROHMAN";
-  char ctrJadwal[25];
+  char ctrJadwal[30];
   
 };
 Config config;
@@ -84,8 +85,8 @@ uint8_t    DWidth        = Disp.width();
 uint8_t    DHeight       = Disp.height();
 
 // Variabel untuk waktu, tanggal, teks berjalan, tampilan ,dan kecerahan
-bool       adzan         = 0;
-uint8_t    sholatNow     = -1;
+bool       adzan         = 1;
+uint8_t    sholatNow     = 1;
 bool       reset_x       = 0; 
 /*======library tambahan=======*/
 bool       flagAnim = false;
@@ -97,11 +98,11 @@ bool       counterName     = 1;
 bool       DoSwap          = false;
 
 bool showVolumeTemp = false;
-unsigned long volumeDisplayMillis = 0;
-const unsigned long volumeDisplayDuration = 2000; // 1 detik
+uint32_t volumeDisplayMillis = 0;
+constexpr uint16_t volumeDisplayDuration = 2000; // 1 detik
 
-const uint8_t MAX_VOLUME = 25;
-const uint8_t MIN_VOLUME = 0;
+constexpr uint8_t MAX_VOLUME = 25;
+constexpr uint8_t MIN_VOLUME = 0;
 
 byte volume = 10;
 
@@ -122,42 +123,19 @@ enum Show{
   ANIM_BLINK,
   ANIM_COUNTER
 };
-Show show = ANIM_BIGFONT;
+Show show = ANIM_BLINK;
 
 enum Line{
   ANIM_ZONK,
   ANIM_SHOLAT,
   ANIM_MASEHI,
-  ANIM_DAY
+  ANIM_DAY_NASIONAL,
+  ANIM_DAY_PASARAN
 };
 Line line = ANIM_ZONK;
 
-//#define EEPROM_SIZE 2000
-
 #define EEPROM_SIZE       2000
 
-/*/ Alamat EEPROM
-#define ADDR_TEXT1        0     // text1, max 100 bytes
-#define ADDR_TEXT2       100   // text2, max 100 bytes
-#define ADDR_BRIGHTNESS  200
-#define ADDR_SPEEDTX1    202
-#define ADDR_SPEEDTX2    204   // Tambahan untuk speed text 2
-#define ADDR_SPEEDDT     206
-#define ADDR_LATITUDE    208
-#define ADDR_LONGITUDE   212
-#define ADDR_TZ          216
-#define ADDR_ALTITUDE    218
-#define ADDR_IQOMAH      220  // 6 byte
-#define ADDR_BLINK       226  // 6 byte
-#define ADDR_IHTY        232  // 6 byte
-#define ADDR_BUZZER      238
-#define ADDR_PASSWORD    240  // 8 byte
-#define ADDR_DURASIADZAN 248
-#define ADDR_CORRECTION  250
-#define ADDR_MODE        256
-#define ADDR_SPEEDNAME   258
-#define ADDR_NAME        260
-*/
 
 // ================= TEXT (250 char) =================
 #define ADDR_TEXT1        0      // 251
@@ -331,7 +309,7 @@ void loop()
   check();
   islam();
   Disp.clear();
-  //
+  
   if (showVolumeTemp) {
     tampilkanVolume();
     if (millis() - volumeDisplayMillis >= volumeDisplayDuration) {
@@ -372,15 +350,15 @@ void loop()
     break;
 
     case ANIM_ADZAN :
-     // drawAzzan();
+      drawAzzan();
     break;
 
     case ANIM_IQOMAH :
-     // drawAzzan();
+      drawIqomah();
     break;
 
     case ANIM_BLINK :
-     // drawAzzan();
+      blinkBlock();
     break;
 
     case ANIM_COUNTER :
@@ -388,8 +366,6 @@ void loop()
      updateSholatNow();
      runn(tampilSelisih(),50,1);
     break;
-
-
   };
 
   switch(line){
@@ -405,15 +381,19 @@ void loop()
       updateAnimUpDown(TGLMASEHI());
     break;
 
-    case ANIM_DAY :
-      updateAnimUpDown(DAY());
+    case ANIM_DAY_NASIONAL :
+      updateAnimUpDown(NASIONAL());
+    break;
+
+    case ANIM_DAY_PASARAN :
+      updateAnimUpDown(PASARAN());
     break;
   };
+  
   jamCenter();
   
 }
 
-    //buzzerWarning(config.stateBuzzWar);
     yield();
     if(DoSwap){Disp.swapBuffers();} // Swap Buffer if Change
 

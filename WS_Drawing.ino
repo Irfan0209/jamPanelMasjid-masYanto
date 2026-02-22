@@ -5,13 +5,13 @@ char * const Hari[]  = {"MINGGU","SENIN","SELASA","RABU","KAMIS","JUM'AT","SABTU
 //const char * const bulanMasehi[] PROGMEM = {"JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER" };
 char* jadwal[] = {"IMSAK","SUBUH", "TERBT", "DUHUR", "ASHAR", "MAGRB", "ISYA'"};
 char* jadwalAzzan[] = {"SUBUH","DZUHUR", "ASHAR", "MAGRIB", "ISYA'"};
-char * namaBulanHijriah[] = {
-    "MUHARRAM", "SHAFAR", "RABIUL AWAL",
-    "RABIUL AKHIR", "JUMADIL AWAL", 
-    "JUMADIL AKHIR", "RAJAB",
-    "SYA'BAN", "RAMADHAN", "SYAWAL",
-    "DZULQA'DAH", "DZULHIJAH"
-};
+//char * namaBulanHijriah[] = {
+//    "MUHARRAM", "SHAFAR", "RABIUL AWAL",
+//    "RABIUL AKHIR", "JUMADIL AWAL", 
+//    "JUMADIL AKHIR", "RAJAB",
+//    "SYA'BAN", "RAMADHAN", "SYAWAL",
+//    "DZULQA'DAH", "DZULHIJAH"
+//};
 
 struct SholatAnim {
   uint8_t  phase;      // IN / HOLD / OUT
@@ -45,8 +45,15 @@ void initAnimSholat() {
 
 void updateAnimSholat() {
 
+  if(adzan) return;
+  if(reset_x) {
+    shAnim.phase = PHASE_IN;
+    shAnim.sNum  = 0;
+    shAnim.x     = 0;
+    reset_x = 0;
+  }
   uint32_t now = millis();
-  const uint8_t center = 8;   // 32x16 panel
+  constexpr uint8_t center = 8;   // 32x16 panel
 
   switch (shAnim.phase) {
 
@@ -93,14 +100,6 @@ void drawSholatFrame(uint8_t sNum, int8_t x) {
 
   float sholatT[]={JWS.floatImsak,JWS.floatSubuh,JWS.floatTerbit,JWS.floatDzuhur,JWS.floatAshar,JWS.floatMaghrib,JWS.floatIsya};
 
- // Disp.clear();
-
-  // ===== JAM =====
-//  RtcDateTime now = Rtc.GetDateTime();
-//  char h[3], m[3];
-//  snprintf(h, sizeof(h), "%02d", now.Hour());
-//  snprintf(m, sizeof(m), "%02d", now.Minute());
-
   // ===== SHOLAT =====
   float st = sholatT[sNum];
   uint8_t hh = (uint8_t)st;
@@ -113,7 +112,6 @@ void drawSholatFrame(uint8_t sNum, int8_t x) {
   Disp.drawText(33, x, jadwal[sNum]);
   Disp.drawText(65, x, timeBuf);
 
-  //DoSwap = true;
 }
 
 void initAnimMasehi() {
@@ -125,6 +123,14 @@ void initAnimMasehi() {
 
 void updateAnimUpDown(const char* msg) {
 
+  if(adzan) return;
+  if(reset_x) {
+    msAnim.phase = PHASE_IN;
+    msAnim.sNum  = 0;
+    msAnim.x     = 0;
+    reset_x = 0;
+  }
+  
   uint32_t now = millis();
   const uint8_t center = 8;   // 32x16 panel
 
@@ -152,8 +158,9 @@ void updateAnimUpDown(const char* msg) {
         msAnim.timer = now;
         if (msAnim.x > 0) msAnim.x--;
         else {
-          if(line == ANIM_MASEHI){ line = ANIM_DAY; }
-          else if(line == ANIM_DAY){ line = ANIM_SHOLAT; }
+          if(line == ANIM_MASEHI){ line = ANIM_DAY_NASIONAL; }
+          else if(line == ANIM_DAY_NASIONAL){ line = ANIM_DAY_PASARAN; }
+          else if(line == ANIM_DAY_PASARAN){ line = ANIM_SHOLAT; }
           msAnim.phase = PHASE_IN;
           return;
         }
@@ -161,21 +168,22 @@ void updateAnimUpDown(const char* msg) {
       break;
   }
 
-  //drawFrame(msg,);
   fType(1);
-  Disp.drawText(33,msAnim.x-center,msg);
+  dwCtr(32,msAnim.x-center,msg);
  
-  //DoSwap = true;
 }
 
 
 //==================== animasi jam dan running text =================//
 
 void jamCenter(){
-//    if(adzan) return;
-//    //if(!dwDo(DrawAdd)) return; 
-    RtcDateTime now = Rtc.GetDateTime();
+  if(adzan) return;
+
+  RtcDateTime now = Rtc.GetDateTime();
+    
   Disp.drawFilledRect(0, 0, 31, 16, 0);
+  Disp.drawLine(31,0,31,16,1);
+  
   if(now.Second() % 2 ){
       Disp.drawCircle(15,4,1,1);
       Disp.drawCircle(15,11,1,1);
@@ -191,19 +199,28 @@ void jamCenter(){
   
   Disp.drawChar(18, 0, '0' + now.Minute() / 10);
   Disp.drawChar(25, 0, '0' + now.Minute() % 10);
- 
+  //DoSwap = true;
 }
 
 void runn(const char* msg, uint8_t speed, uint8_t fontt)
 {
+  if(adzan) return;
+  
+  
   static uint32_t x = 0;
   static uint32_t fullScroll = 0;
   static uint32_t lastMs = 0;
-  static const char* lastMsg = nullptr;
 
+  if(reset_x){
+    x = 0;
+    fullScroll = 0;
+    lastMs = 0;
+    reset_x = 0;
+  }
+  
   // ====== Pesan baru → reset animasi ======
 
- fType(fontt);
+  fType(fontt);
   // ====== Pesan kosong → langsung lompat ======
   uint16_t w = Disp.textWidth(msg);
   if (w == 0) {
@@ -246,85 +263,126 @@ void nextShowState()
     case ANIM_TEXT3:   show = ANIM_TEXT4; break;
     case ANIM_TEXT4:   show = ANIM_TEXT5; break;
     case ANIM_TEXT5:   show = ANIM_COUNTER; break;
-    case ANIM_COUNTER:   show = ANIM_BIGFONT; line = ANIM_ZONK; break;
+    case ANIM_COUNTER:   show = ANIM_BIGFONT; line = ANIM_ZONK; reset_x = 1; break;
   }
 }
 
+/*======================= animasi memasuki waktu sholat ====================================*/
+void drawAzzan()
+{
+    //static const char *jadwal[] = {"SUBUH", "DZUHUR", "ASHAR", "MAGRIB","ISYA'"};
+    const char *sholat = jadwalAzzan[sholatNow]; 
+    static uint8_t ct = 0;
+    static uint32_t lsRn = 0;
+    uint32_t Tmr = millis();
+    const uint8_t limit = config.durasiadzan;
 
-
-//==================== animasi jam dan running text =================//
-void dwMrq(const char* msg, byte Speed, byte dDT,byte fontt) //running teks ada jam nya
-  { 
-    static uint32_t   x; 
-    static uint32_t fullScroll = 0;
-    if(adzan) return;
-    if (reset_x !=0) { x=0; reset_x = 0; fullScroll = 0;}      
-
-    uint32_t          Tmr = millis();
-    static uint32_t lss=0;
-    
-    
-     
-    if (fullScroll == 0) { // Hitung hanya sekali
-       fType(fontt);
-       (fontt == 5)? fullScroll = Disp.textWidth(msg) + DWidth + 20 : fullScroll = Disp.textWidth(msg) + DWidth ; 
-    }   
-    
-    
-    
-    if((Tmr-lss)> Speed)
-      { lss=Tmr;
-        if (x < fullScroll) {++x;}
-        else {
-          RtcDateTime now = Rtc.GetDateTime();
-          if(show==ANIM_BIGFONT){show=ANIM_BIGFONT; Serial.println("TIME:" + String(now.Hour()) + "," + String(now.Minute()) + "," + String(now.Second()) + "," + String(now.DayOfWeek()));}
-          //else if(show==ANIM_BIGFONT){show=ANIM_BIGFONT; Serial.println("TIME:" + String(now.Hour()) + "," + String(now.Minute()) + "," + String(now.Second()) + "," + String(now.DayOfWeek()));}
-         // else if(show==ANIM_BIG){show=ANIM_DATE;}
-          x = 0; 
-          fullScroll = 0;
-          return;}
-     if(dDT==1)
+    if (Tmr - lsRn > 500 && ct <= limit)
+    {
+        lsRn = Tmr;
+        if (!(ct & 1))  // Lebih cepat dibandingkan ct % 2 == 0
         {
-        //fType(1);  //Marquee    jam yang tampil di bawah
-        Disp.drawText(DWidth - x, 0, msg); //runing teks diatas
-        //fType(1);
-        if (x<=6)                     { drawGreg_TS(16-x);}
-        else if (x>=(fullScroll-6))   { drawGreg_TS(16-(fullScroll-x));}
-        else                          { drawGreg_TS(9);}//posisi jamnya yang bawah
-   
+          fType(1);
+          dwCtr(0, 0, "ADZAN");
+          dwCtr(0, 8, sholat);
+          Buzzer(1);
+           
         }
-     else if(dDT==2) //jam yang diatas
-        {    
-        //fType(1);
-        if (x<=6)                     { drawGreg_TS(x-6);}
-        else if (x>=(fullScroll-6))   { drawGreg_TS((fullScroll-x)-6);}
-        else                          { drawGreg_TS(0);}  //posisi jam nya yang diatas
-        //fType(1); //Marquee  running teks dibawah
-        Disp.drawText(DWidth - x, 9 , msg);//runinng teks dibawah
-        
+        else
+        {
+          Buzzer(0);
         }
-      else if(dDT==3) //jam yang diatas
-      {
-        //fType(1);  //Marquee    jam yang tampil di bawah
-        //drawGreg_TS(4);
-        Disp.drawText(DWidth - x, 0, msg); //runing teks diatas
-        Serial.println("x:" + String(x));
-      }
+        ct++;
         DoSwap = true;
-      }          
-     
-  }
+    }
+    
+    if ((Tmr - lsRn) > 1500 && (ct > limit))
+    {
+        show = ANIM_IQOMAH;
+        ct = 0;
+        Buzzer(0);
+    }
+}
 
-void drawGreg_TS(int y)   // Draw Time
-  {
+void drawIqomah()  // Countdown Iqomah (9 menit)
+{  
+    static uint32_t lsRn = 0;
+    static uint16_t ct = 0;  // Mulai dari 0 untuk menghindari error
+    static uint8_t mnt, scd;
+    char locBuff[10];  
+    uint32_t now = millis();  // Simpan millis() di awal
+    
+    uint16_t cn_l = (iqomah[sholatNow] * 60);
+    
+    mnt = (cn_l - ct) / 60;
+    scd = (cn_l - ct) % 60;
+    snprintf(locBuff,sizeof(locBuff), "-%02d:%02d", mnt, scd);
+
+   // if ((ct & 1) == 0) {  // Gunakan bitwise untuk optimasi modulo 2
+    fType(1);
+    dwCtr(0, 0, "MENUJU IQOMAH:");
+    dwCtr(0, 8, locBuff);
+    DoSwap = true;
+    
+    if (now - lsRn > 1000) 
+    {   
+        lsRn = now;
+        ct++;
+
+        if (ct > (cn_l - 5)) {
+            Buzzer(ct & 1);  // Gunakan bitwise untuk menggantikan modulo 2
+        }
+    }
+
+    if (ct >= cn_l)  // Pakai >= untuk memastikan countdown selesai dengan benar
+    {
+        ct = 0;
+        Buzzer(0);
+        show = ANIM_BLINK;
+    }    
+}
+
+void blinkBlock()
+{
+    static uint32_t lsRn;
+    static uint16_t ct = 0;
+    const uint16_t ct_l = displayBlink[sholatNow] * 60;  // Durasi countdown
+    uint32_t noww = millis();  // Simpan millis()
+
+    // Ambil waktu dari RTC
     RtcDateTime now = Rtc.GetDateTime();
-    char  Buff[8];
-    sprintf(Buff,"%02d:%02d",now.Hour(),now.Minute());
-    Disp.drawText(0,y,Buff);
-    //DoSwap = true;
-  }
 
-//===================== end ========================//
+    // Hitung countdown
+    uint8_t mnt = (ct_l - ct) / 60;
+    uint8_t scd = (ct_l - ct) % 60;
+
+    // Tampilkan jam besar
+    char timeBuff[9];
+    snprintf(timeBuff,sizeof(timeBuff), "%02d:%02d:%02d", now.Hour(), now.Minute(), now.Second());
+    
+    fType(0);
+    dwCtr(60, 8, timeBuff);
+    DoSwap = true;
+     
+    // Update countdown setiap detik
+    if (noww - lsRn > 1000)
+    {
+        lsRn = noww;
+        ct++;
+    }
+
+    // Reset jika countdown selesai & kembali ke animasi utama
+    if (ct > ct_l)
+    {
+        sholatNow = -1;
+        adzan = false;
+        ct = 0;
+        show = ANIM_BIGFONT;
+    }
+}
+//===================================== end =================================//
+
+
 
 void dwCtr(int x, int y, String Msg){
    uint16_t   tw = Disp.textWidth(Msg);
@@ -342,4 +400,17 @@ void fType(int x)
     else if(x==5) Disp.setFont(Font5);
     else if(x==6) Disp.setFont(Font6); 
     else if(x==7) Disp.setFont(Font7); 
+//    else if(x==8) Disp.setFont(Font8);
   }
+
+
+
+
+
+
+
+
+
+
+
+  

@@ -1,17 +1,15 @@
 
 //======================== new program =========================//
 
-
-//////hijiriyah voidku/////////////////////////////////////////////////
 void islam() {
   RtcDateTime now = Rtc.GetDateTime();
   static uint32_t sv=0;
-  uint32_t timer = millis();
+  
   if(now.Hour() == 00 && now.Minute() == 00 && now.Second() == 00){
     stateBuzzWar = 1;
   }
 
-  if(timer - sv > 5000){
+  if(millis() - sv > 5000){
     JWS.Update(config.zonawaktu, config.latitude, config.longitude, config.altitude, now.Year(), now.Month(), now.Day()); // Jalankan fungsi ini untuk update jadwal sholat
     JWS.setIkhtiSu = dataIhty[0];
     JWS.setIkhtiDzu = dataIhty[1];
@@ -19,7 +17,7 @@ void islam() {
     JWS.setIkhtiMa = dataIhty[3];
     JWS.setIkhtiIs = dataIhty[4];
     Hijir.Update(now.Year(), now.Month(), now.Day(), config.Correction);
-    sv = timer;
+    sv = millis();
   }
 }
 
