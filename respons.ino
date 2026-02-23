@@ -1,5 +1,5 @@
 //=================== menghitung nilai volume =======================//
-void setVolume(byte newVolume) {
+/*void setVolume(byte newVolume) {
 
   if (newVolume > MAX_VOLUME) {
     volume = MAX_VOLUME;
@@ -21,7 +21,7 @@ void setVolume(byte newVolume) {
   showVolumeTemp = true;
   volumeDisplayMillis = millis();
 }
-
+*/
 //=====================  perhitungan waktu mundur waktu sholat ============================//
 
 // index: 1=Subuh, 2=Dzuhur, 3=Ashar, 4=Maghrib, 5=Isya

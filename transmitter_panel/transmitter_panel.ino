@@ -2,19 +2,9 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <WebSocketsServer.h>
-#include <ESP_EEPROM.h>
-//#include <ArduinoOTA.h>
-
-#define EEPROM_SIZE 512
-#define ADDR_MODE        0
-#define ADDR_PASSWORD    2
 
 char ssid[20]     = "JAM_PANEL";
 char password[20] = "00000000";
-
-//const char* otaSsid = "KELUARGA02";
-//const char* otaPass = "khusnul23";
-//const char* otaHost = "SERVER";
 
 ESP8266WebServer server(80);
 WebSocketsServer webSocket(81);
@@ -25,9 +15,6 @@ IPAddress subnet(255, 255, 255, 0);
 
 bool clientReady[5] = { false, false, false, false, false };
 bool modeOTA = false;
-
-unsigned long lastTimeSend = 0;
-const unsigned long intervalSendTime = 60000; // 1 menit
 
 void getData(String input) {
   Serial.println(input);
@@ -210,7 +197,7 @@ void handleSetTime() {
     getData(data);
     server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
   }
-  if (server.hasArg("bzrClkr")) {
+  if (server.hasArg("bzrClk")) {
     data = server.arg("bzrClk"); // Atur status buzzer
     data = "bzrClk=" + data;
     //Serial.println(data);
@@ -240,14 +227,10 @@ void handleSetTime() {
   }
   if (server.hasArg("mode")) {
     data = server.arg("mode"); // Atur status mode
-    EEPROM.write(ADDR_MODE, data.toInt());
-    EEPROM.commit();
     data = "mode=" + data;
     kirimDataKeClient(data);
     getData(data);
     server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
-    delay(500);
-    ESP.restart();
   }
    if (server.hasArg("PLAY")) {//
     data = server.arg("PLAY"); // Atur status play
@@ -311,14 +294,18 @@ void handleSetTime() {
     server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
   }
   if (server.hasArg("status")) {
+    data = server.arg("status");
+    data = "status=1" ;
+    getData(data);
     server.send(200, "text/plain", "CONNECTED");
   }
  
   if (server.hasArg("newPassword")) {
       data = server.arg("newPassword");
       data = "newPassword=" + data;
-      //Serial.println(data);
       getData(data);
+      delay(500);
+      ESP.restart();
       server.send(200, "text/plain","OK");// "Password WiFi diupdate");
     } 
   data="";
@@ -371,12 +358,47 @@ int getIntPart(String &s, int &pos) {
   return val;
 }
 
+bool passwordReady = false;
+
+void waitPasswordFromESP8266() {
+  Serial.println("WAIT_PASSWORD");
+
+  unsigned long tStart = millis();
+
+  while (!passwordReady) {
+
+    if (Serial.available()) {
+      String line = Serial.readStringUntil('\n');
+      line.trim();
+
+      // Format wajib: PWD=12345678
+      if (line.startsWith("PWD=")) {
+        String pwd = line.substring(4);
+
+        if (pwd.length() == 8) {
+          pwd.toCharArray(password, 9);   // simpan ke buffer password
+          passwordReady = true;
+
+          Serial.println("PWD_OK");       // ACK ke ESP8266
+        }
+      }
+    }
+
+    // watchdog safety
+    yield();
+  }
+
+//  Serial.print("Password diterima: ");
+//  Serial.println(password);
+}
+
 void setup() {
   Serial.begin(9600);
-  EEPROM.begin(EEPROM_SIZE);
- 
-    AP_init();
- 
+
+  waitPasswordFromESP8266();  // ⬅️ GATE WAJIB
+
+  AP_init();                  // baru jalan SETELAH password siap
+//  Serial.println("SYSTEM RUN");
 }
 
 void loop() {

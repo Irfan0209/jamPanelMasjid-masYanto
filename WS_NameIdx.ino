@@ -42,10 +42,10 @@ char * showTanggal(){
     return buff_date;
 }
 
-void tampilkanVolume() {
-  char buff[15];
-  snprintf(buff, sizeof(buff), "%s=%02d", "VOLUME", volume);
-  fType(1); 
-  dwCtr(0,4,buff); //tulisan nama
-  DoSwap  = true ;
-}
+//void tampilkanVolume() {
+//  char buff[15];
+//  snprintf(buff, sizeof(buff), "%s=%02d", "VOLUME", volume);
+//  fType(1); 
+//  dwCtr(0,4,buff); //tulisan nama
+//  DoSwap  = true ;
+//}
