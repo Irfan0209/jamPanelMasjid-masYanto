@@ -637,6 +637,7 @@ void getData(String input) {
     else if (key == "alarm") {
       config.stateAlarm = value.toInt();
       EEPROM.write(ADDR_STATEALARM, config.stateAlarm);
+      if(!config.stateAlarm){panelState = false; Disp.setBrightness(config.brightness); }
     }
 
     else if (key == "alarmOn") {
