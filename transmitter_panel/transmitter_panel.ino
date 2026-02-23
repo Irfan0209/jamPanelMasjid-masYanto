@@ -16,6 +16,9 @@ IPAddress subnet(255, 255, 255, 0);
 bool clientReady[5] = { false, false, false, false, false };
 bool modeOTA = false;
 
+bool stateRestart  = false;
+String pass;
+
 void getData(String input) {
   Serial.println(input);
   // Di sini bisa tambahkan pengolahan data lebih lanjut
@@ -303,9 +306,8 @@ void handleSetTime() {
   if (server.hasArg("newPassword")) {
       data = server.arg("newPassword");
       data = "newPassword=" + data;
-      getData(data);
-      delay(500);
-      ESP.restart();
+      pass = data;
+      stateRestart = true;
       server.send(200, "text/plain","OK");// "Password WiFi diupdate");
     } 
   data="";
@@ -405,4 +407,19 @@ void loop() {
     server.handleClient();
     webSocket.loop();
     cekSerialMonitor();
+    Restart(pass);
+}
+
+void Restart(String msg){
+  if(!stateRestart) return;
+
+  static uint32_t sv = 0;
+
+  if(millis() - sv > 2000){
+    sv = millis();
+    stateRestart = false;
+    getData(msg);
+    delay(100);
+    ESP.restart();
+  }
 }
