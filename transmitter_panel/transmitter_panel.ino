@@ -296,6 +296,18 @@ void handleSetTime() {
     //getData(data);
     server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
   }
+   if (server.hasArg("At")) {
+    data = server.arg("At"); // Atur status buzzer
+    data = "At:" + data;
+    kirimDataKeClient(data);
+    server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
+  }
+   if (server.hasArg("Vc")) {
+    data = server.arg("Vc"); // Atur status buzzer
+    data = "Vc:" + data;
+    kirimDataKeClient(data);
+    server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
+  }
   if (server.hasArg("status")) {
     data = server.arg("status");
     data = "status=1" ;
@@ -305,8 +317,10 @@ void handleSetTime() {
  
   if (server.hasArg("newPassword")) {
       data = server.arg("newPassword");
-      data = "newPassword=" + data;
       pass = data;
+      data = "newPassword:" + data;
+      kirimDataKeClient(data);
+      pass = "newPassword=" + pass;
       stateRestart = true;
       server.send(200, "text/plain","OK");// "Password WiFi diupdate");
     } 
@@ -415,7 +429,7 @@ void Restart(String msg){
 
   static uint32_t sv = 0;
 
-  if(millis() - sv > 2000){
+  if(millis() - sv > 5000){
     sv = millis();
     stateRestart = false;
     getData(msg);

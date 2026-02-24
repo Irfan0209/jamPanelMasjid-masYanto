@@ -15,6 +15,9 @@ void islam() {
     stateBuzzWar = 1;
   }
 
+  if (now.Minute() == 0 && now.Second() == 0 && now.Hour() == 0){
+    Serial.println("restart");
+  }
   //========================================//
 
   if(millis() - sv > 5000){

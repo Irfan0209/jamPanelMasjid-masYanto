@@ -13,7 +13,10 @@
 #include <TimeLib.h>
 #include "OneButton.h"
 
-#define LED_WIFI 2
+#define PASSWORD_LEN 20   // maksimal 15 karakter + '\0'
+
+const char* ssid = "JAM_PANEL";
+char password[PASSWORD_LEN] = "00000000";
 
 //LIBRARY UNTUK ACCES POINT
 #include <WiFi.h>
@@ -32,8 +35,10 @@ IPAddress local_IP(192, 168, 2, 1);
 IPAddress gateway(192, 168, 2, 1);
 IPAddress subnet(255, 255, 255, 0);
 
-#define RELAY_PIN         27
-#define RUN_LED           9
+#define RELAY_PIN         26
+#define RUN_LED           13
+#define NORMAL_STATUS_LED 14
+#define LED_WIFI          25
 
 #define EEPROM_SIZE 1000
 
@@ -57,7 +62,9 @@ struct WaktuConfig {
 WaktuConfig jadwal[HARI_TOTAL][WAKTU_TOTAL];
 uint8_t durasiAdzan[MAX_FILE];
 uint16_t durasiTartil[MAX_FOLDER][MAX_FILE];
+
 byte volumeDFPlayer;
+
 uint8_t jamSholat[WAKTU_TOTAL]; //= {4, 12, 15, 18, 19};
 uint8_t menitSholat[WAKTU_TOTAL];// = {30, 0, 30, 0, 30};
 
@@ -68,7 +75,7 @@ byte tartilIndex = 0;
 
 uint16_t tartilCounter = 0;
 uint16_t targetDurasi = 0;
-unsigned long lastTick = 0;
+uint32_t lastTick = 0;
 
 bool jedaAktif = false;
 uint32_t jedaMulaiMillis = 0;
@@ -88,24 +95,28 @@ uint16_t targetDurasiAdzan = 0;
 byte currentDay = 0;
 
 // Tambahan untuk relay delay dan manual
-uint32_t relayOffDelayMillis = 0;
-bool relayMenungguMati = false;
+// uint32_t relayOffDelayMillis = 0;
+// bool relayMenungguMati = false;
 bool manualSedangDiputar = false;
 bool adzanManualSedangDiputar = false;
 
 //variabel untuk led status system
 static uint8_t m_Counter = 0;
-static uint16_t waveStepDelay = 20;  // Delay antar frame LED breathing (ms)
+constexpr uint16_t waveStepDelay = 20;  // Delay antar frame LED breathing (ms)
 static uint32_t lastWaveMillis = 0;
-//bool STATUS_MODE = false;
-//bool lastStatusMode = !STATUS_MODE;     // agar langsung update saat pertama kali
+
 bool lastNormalStatus = false;
 uint32_t lastTimeReceived = 0;
-const uint32_t TIMEOUT_INTERVAL = 70000; // 70 detik, lebih dari 1 menit
+constexpr uint32_t TIMEOUT_INTERVAL = 70000; // 70 detik, lebih dari 1 menit
+
 bool wsConnected = false;
 bool wifiConnected = false;
 unsigned long lastWiFiAttempt = 0;
-const unsigned long wifiRetryInterval = 5000;
+constexpr uint32_t wifiRetryInterval = 5000;
+
+bool autoTartilEnable = true;
+bool voiceClock = true;
+
 // ------------------- WebSocket Event -------------------
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
   switch (type) {
@@ -125,7 +136,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
         delay(500);
         ESP.restart();
       }else{
-        Serial.println(msg);
+        parseData(msg);
       }
       break;
     }
@@ -139,6 +150,7 @@ void setup() {
   pinMode(RUN_LED, OUTPUT);
   pinMode(RELAY_PIN, OUTPUT);
   pinMode(LED_WIFI, OUTPUT);
+  pinMode(NORMAL_STATUS_LED, OUTPUT);
   
   delay(1000);
   Serial.begin(9600);
@@ -155,6 +167,10 @@ void setup() {
   loadFromEEPROM();
   
   delay(2000);
+
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  lastWiFiAttempt = millis();
   
   dfplayer.volume(volumeDFPlayer);
   webSocket.onEvent(webSocketEvent);
@@ -165,15 +181,14 @@ void loop() {
   if (sudahEksekusi && millis() - lastTriggerMillis > 60000) {
     sudahEksekusi = false;
   }
-  bacaDataSerial();
   cekDanPutarSholatNonBlocking();
   cekSelesaiTartil();
   cekSelesaiAdzan();
   cekSelesaiAdzanManual();
-  cekRelayOffDelay();
   cekSelesaiManual();
-  //cekStatusSystem();
   getStatusRun();
+  cekStatusSystem();
+ // bacaDataSerial();
 
  if (!wifiConnected && millis() - lastWiFiAttempt >= wifiRetryInterval) {
     lastWiFiAttempt = millis();
@@ -193,20 +208,20 @@ void loop() {
 
 }
 
-void bacaDataSerial() {
-  static String buffer = "";
-  while (Serial.available()) {
-    char c = Serial.read();
-    //Serial.print(c); // DEBUG: tampilkan semua karakter yang diterima
-    if (c == '\n') {
-      //Serial.println("\n>> Memanggil parseData()");
-      parseData(buffer);
-      buffer = "";
-    } else {
-      buffer += c;
-    }
-  }
-}
+// void bacaDataSerial() {
+//   static String buffer = "";
+//   while (Serial.available()) {
+//     char c = Serial.read();
+//     //Serial.print(c); // DEBUG: tampilkan semua karakter yang diterima
+//     if (c == '\n') {
+//       //Serial.println("\n>> Memanggil parseData()");
+//       parseData(buffer);
+//       buffer = "";
+//     } else {
+//       buffer += c;
+//     }
+//   }
+// }
 
 //================= parsing data dari Akses Point =========================//
 int getIntPart(String &s, int &pos) {
@@ -218,7 +233,7 @@ int getIntPart(String &s, int &pos) {
 }
 
 void parseData(String data) {
-  //Serial.println("DATA: " + data);
+//Serial.println("data=" + data);
 lastTimeReceived = millis();
  // --- Parsing TIME ---
 if (data.startsWith("TIME:")) {
@@ -246,9 +261,10 @@ if (data.startsWith("TIME:")) {
 
 
   // --- Parsing VOL ---
-  if (data.startsWith("VOL:")) {
+  else if (data.startsWith("VOL:")) {
     //lastTimeReceived = millis();
     volumeDFPlayer = data.substring(4).toInt();
+    //Serial.println("volume:" + String(volumeDFPlayer));
     dfplayer.volume(volumeDFPlayer);
     saveToEEPROM();
     return;
@@ -256,7 +272,7 @@ if (data.startsWith("TIME:")) {
 
 //---- Program baru------//
   // --- Parsing HR (jadwal harian) ---
-if (data.startsWith("HR:")) {
+else if (data.startsWith("HR:")) {
   //lastTimeReceived = millis();
   int hariEnd = data.indexOf('|');
   if (hariEnd == -1) return;
@@ -295,7 +311,7 @@ for (int i = 0; i < 5; i++) {
 }
 //----------------------------//
 
-if (data.startsWith("PLAY:")) {
+else if (data.startsWith("PLAY:")) {
   //lastTimeReceived = millis();
   int idx = 5;
   byte folder = getIntPart(data, idx);
@@ -315,7 +331,7 @@ if (data.startsWith("PLAY:")) {
       targetDurasi          = durasi;
       lastTick              = millis();
       manualSedangDiputar   = true;
-      relayMenungguMati     = false;
+      //relayMenungguMati     = false;
     } else {
       //Serial.println("Durasi tidak ditemukan atau 0.");
     }
@@ -324,7 +340,7 @@ if (data.startsWith("PLAY:")) {
 }
 
 //------------------------------------------------
-if (data.startsWith("PLAD:")) {
+else if (data.startsWith("PLAD:")) {
   int idx = 5;
   byte file   = getIntPart(data, idx);
 
@@ -345,11 +361,11 @@ if (data.startsWith("PLAD:")) {
 //------------------------------------------------
 
   // --- Perintah STOP ---
-  if (data.startsWith("STOP")) {
+else if (data.startsWith("STOP")) {
     //lastTimeReceived = millis();
     dfplayer.stop();
     digitalWrite(RELAY_PIN, HIGH);//relay mati
-    relayMenungguMati = false;
+    //relayMenungguMati = false;
     tartilSedangDiputar = false;
     adzanSedangDiputar = false;
     manualSedangDiputar = false;
@@ -359,7 +375,7 @@ if (data.startsWith("PLAD:")) {
   }
 
 // ----------- PROGRAM BARU
-if (data.startsWith("NAMAFILE:")) {
+else if (data.startsWith("NAMAFILE:")) {
   //lastTimeReceived = millis();
   int idx = 9;
   byte folder = getIntPart(data, idx);
@@ -381,7 +397,7 @@ if (data.startsWith("NAMAFILE:")) {
 }
 
 
-if (data.startsWith("ADZAN:")) {
+else if (data.startsWith("ADZAN:")) {
   //lastTimeReceived = millis();
   int idx = 6;
   byte file = getIntPart(data, idx);
@@ -397,7 +413,7 @@ if (data.startsWith("ADZAN:")) {
   return;
 }
 
-if (data.startsWith("JWS:")) {
+else if (data.startsWith("JWS:")) {
   //lastTimeReceived = millis();
   String sisa = data.substring(4); // Hilangkan "JWS:"
   for (int i = 0; i < WAKTU_TOTAL; i++) {
@@ -416,394 +432,44 @@ if (data.startsWith("JWS:")) {
       sisa = sisa.substring(pemisahIdx + 1); // lanjut ke data berikutnya
     }
   }
+}
 
-  saveToEEPROM();
-  //============ DEBUG =============//
-  //Serial.println("Jadwal Sholat diperbarui:");
-//  for (int i = 0; i < WAKTU_TOTAL; i++) {
-//    Serial.print(" - Waktu "); Serial.print(i);
-//    Serial.print(": "); Serial.print(jamSholat[i]);
-//    Serial.print(":"); Serial.println(menitSholat[i]);
-//  }
+  // --- Parsing At (Auto Tartil) ---
+else if (data.startsWith("At:")) {
+  autoTartilEnable = data.substring(3).toInt();
+  // Serial.print("AutoTartil: ");
+  // Serial.println(autoTartilEnable);
   return;
 }
 
+// --- Parsing newPassword ---
+else if (data.startsWith("newPassword:")) {
+  String pwd = data.substring(12);
+
+  if (pwd.length() == 8) {
+    pwd.toCharArray(password, 9); // copy aman
+
+    Serial.print("Password baru diterima: ");
+    Serial.println(password);
+
+    saveToEEPROM();   // simpan di EEPROM ESP8266 (bukan ESP-01)
+    delay(1000);
+    ESP.restart();
+  } else {
+    Serial.println("Password invalid (harus 8 karakter)");
+  }
+  return;
+}
+
+  saveToEEPROM();
+  //============ DEBUG =============//
+  
+
+data="";
 }
 //============================== END =================================//
-
-//============================== Cek Play Manual Tartil dan Adzan ==========================//
-void cekSelesaiManual() {
-if (manualSedangDiputar) {
-  if (millis() - lastTick >= 1000) {
-    lastTick = millis();
-    tartilCounter++;
-    //Serial.print("Counter: "); Serial.println(tartilCounter);
-    
-    if (tartilCounter >= targetDurasi) {
-      dfplayer.stop();
-      digitalWrite(RELAY_PIN, HIGH);//relay mati
-      manualSedangDiputar = false;
-      //Serial.println("Manual tartil selesai.");
-    }
-  }
-}
-}
-
-void cekSelesaiAdzanManual() {
-  if (adzanManualSedangDiputar) 
-{
-  if (millis() - lastAdzanTick >= 1000) {
-    lastAdzanTick = millis();
-    adzanCounter++;
-
-    if (adzanCounter >= targetDurasiAdzan) {
-      dfplayer.stop();
-      digitalWrite(RELAY_PIN, HIGH);//relay mati
-      adzanManualSedangDiputar = false;
-      adzanCounter=0;
-     // Serial.println("Adzan selesai. Relay dimatikan.");
-    }
-  }
-}
-}
-//========================== END ====================================//
-
-//========================== mengambil durasi Tartil dan Adzan ===============================//
-uint16_t getDurasiTartil(byte folder, int file) {
-  if (folder == 0 || folder > MAX_FOLDER || file >= MAX_FILE) return 0;
-  return durasiTartil[folder - 1][file];
-}
-
-uint16_t getDurasiAdzan(int file) {
-  if (file == 0 || file >= MAX_FILE) return 0;
-  return durasiAdzan[file];
-}
-//============================= END ============================================//
-
-//====================== cek putar waktu Tartil ==============================//
-void cekDanPutarSholatNonBlocking() {
-  if (tartilSedangDiputar || adzanSedangDiputar || sudahEksekusi) return;
-
-  uint32_t detikSekarang = hour() * 3600UL + minute() * 60UL + second();  // cukup pakai uint16_t
-
-  static bool stateJadwal = false;
-
-  // Cetak hanya sekali pada menit tertentu
-  if ((minute() == 0 || minute() == 15 || minute() == 30 || minute() == 45) && second() == 0 && !stateJadwal) {
-    stateJadwal = true;
-    Serial.println("jadwal");
-  } else if (second() != 0) {
-  stateJadwal = false;
-  } 
-
-
-  for (byte w = 0; w < WAKTU_TOTAL; w++) { 
-    
-    WaktuConfig &cfg = jadwal[currentDay][w];
-    if (!cfg.aktif) continue;
-    if (jamSholat[w] == 0 && menitSholat[w] == 0) continue;  // Lewati jadwal tidak valid
-    
-    uint16_t totalDurasi = 0;
-    
-    // Hitung total durasi dari file tartil
-    for (byte i = 0; i < 5; i++) {
-      byte f = cfg.list[i];
-      if (f) {
-        uint16_t d = getDurasiTartil(cfg.folder, f);
-        if (d) totalDurasi += d;
-      }
-    }
-
-    uint32_t jadwalDetik = jamSholat[w] * 3600UL + menitSholat[w] * 60UL;
-    uint32_t triggerDetik = cfg.tartilDulu ? (jadwalDetik - totalDurasi) : jadwalDetik;
-    
-    
-    if (triggerDetik > 86400) continue;  // Lewati jika melebihi 1 hari
-   
-    if (detikSekarang == triggerDetik) {
-      /*/============ DEBUG =============//
-      Serial.println("TRIGGER MATCH!");
-      Serial.println("jam: " + String(hour()) + " " + "menit: " + String(minute()) + "detik: " + String(second()));
-      Serial.println("jamSholat[w]: " + String(jamSholat[w]));
-      Serial.println("menitSholat[w]: " + String(menitSholat[w]));
-      Serial.println("jadwalDetik: " + String(jadwalDetik));
-      Serial.println("totalDurasi: " + String(totalDurasi));
-      Serial.println("triggerDetik: " + String(triggerDetik));
-      Serial.println("detikSekarang: " + String(detikSekarang));
-      //================================/*/
-      
-      digitalWrite(RELAY_PIN, LOW);//relay NYALA
-      currentCfg = &cfg;
-      lastTriggerMillis = millis();
-      sudahEksekusi = true;
-
-      if (cfg.tartilDulu && totalDurasi > 0) {
-        tartilIndex = 0;
-        tartilFolder = cfg.folder;
-        tartilCounter = 0;
-        tartilSedangDiputar = true;
-        manualSedangDiputar = false;
-
-        byte f = cfg.list[tartilIndex];
-        targetDurasi = getDurasiTartil(tartilFolder, f);
-        lastTick = millis();
-        dfplayer.playFolder(tartilFolder, f);
-
-#if DEBUG
-        Serial.print("Tartil dimulai: ");
-        Serial.println(f);
-#endif
-
-      } else if (cfg.aktifAdzan) {
-        targetDurasiAdzan = getDurasiAdzan(cfg.fileAdzan);
-        adzanCounter = 0;
-        lastAdzanTick = millis();
-        adzanSedangDiputar = true;
-        dfplayer.playFolder(11, cfg.fileAdzan);
-
-#if DEBUG
-        Serial.print("Adzan langsung diputar: ");
-        Serial.println(cfg.fileAdzan);
-#endif
-      }
-    }
-  }
-}
-//=================== END =================//
-
-//==================== cek status putar Tartil =======================//
-void cekSelesaiTartil() {
-  if (!tartilSedangDiputar) return;
-
-  // Jeda antar file tartil
-  if (jedaAktif) {
-    if (millis() - jedaMulaiMillis >= JEDA_ANTAR_TARTIL) {
-      jedaAktif = false;
-
-      if (tartilIndex < 5) {
-        byte f = currentCfg->list[tartilIndex];
-        if (f) {
-          targetDurasi = getDurasiTartil(tartilFolder, f);
-          tartilCounter = 0;
-          lastTick = millis();
-          dfplayer.playFolder(tartilFolder, f);
-#if DEBUG
-          Serial.print("Memutar tartil selanjutnya: ");
-          Serial.println(f);
-#endif
-        } else {
-          tartilIndex = 5; // skip ke akhir
-        }
-      } else {
-        tartilSedangDiputar = false;
-      }
-    }
-    return;
-  }
-
-  // Counter tartil per detik
-  if (millis() - lastTick >= 1000) {
-    lastTick = millis();
-    if (++tartilCounter >= targetDurasi) {
-      tartilIndex++;
-      if (tartilIndex < 5) {
-        if (currentCfg->list[tartilIndex]) {
-          jedaAktif = true;
-          jedaMulaiMillis = millis();
-#if DEBUG
-          Serial.println("Menunggu jeda antar file tartil...");
-#endif
-        } else {
-          tartilIndex = 5;
-        }
-      } else {
-        // Tartil selesai
-        tartilSedangDiputar = false;
-        if (currentCfg->aktifAdzan) {
-          adzanCounter = 0;
-          targetDurasiAdzan = getDurasiAdzan(currentCfg->fileAdzan);
-          lastAdzanTick = millis();
-          adzanSedangDiputar = true;
-          dfplayer.playFolder(11, currentCfg->fileAdzan);
-#if DEBUG
-          Serial.println("Tartil selesai, memutar adzan.");
-#endif
-        } else {
-          matikanSemuaAudio();
-          //digitalWrite(RELAY_PIN, LOW);
-#if DEBUG
-          Serial.println("Tartil selesai, relay dimatikan.");
-#endif
-        }
-      }
-    }
-  }
-}
-//========================== END ========================//
-
-
-void matikanSemuaAudio() {
-  dfplayer.stop();
-  digitalWrite(RELAY_PIN, HIGH);//relay mati
-  relayMenungguMati = false;
-  tartilSedangDiputar = false;
-  adzanSedangDiputar = false;
-  manualSedangDiputar = false;
-}
-
-
- void cekRelayOffDelay() {
-   if (relayMenungguMati && millis() - relayOffDelayMillis >= 5000) {
-     digitalWrite(RELAY_PIN, HIGH);//relay mati
-     //Serial.println("cekRelayOffDelay");
-     relayMenungguMati = false;
-     manualSedangDiputar = false;
-   }
- }
-
-//=================== Cek status putar Adzan =======================//
-void cekSelesaiAdzan() {
-  if (!adzanSedangDiputar) return;
-
-  if (millis() - lastAdzanTick >= 1000) {
-    lastAdzanTick = millis();
-    adzanCounter++;
-
-    if (adzanCounter >= targetDurasiAdzan) {
-      dfplayer.stop();
-      digitalWrite(RELAY_PIN, HIGH);//relay mati
-      adzanSedangDiputar = false;
-     // Serial.println("Adzan selesai. Relay dimatikan.");
-    }
-  }
-}
-//=========================== END ==============================//
-
-//================== indikator system ============================//
-void getStatusRun() {
-  uint32_t now = millis();
-  if (now - lastWaveMillis >= waveStepDelay) {
-    lastWaveMillis = now;
-    updateWaveLED();
-  }
-}
-
-void updateWaveLED() {
-  // brightness naik turun dari 0 - 255 - 0
-  uint8_t brightness = (m_Counter < 128) ? m_Counter * 2 : (255 - m_Counter) * 2;
-  setLED(brightness);
-
-  m_Counter = (m_Counter + 1) % 256;  // loop kembali ke 0 setelah 255
-}
-
-void setLED(uint8_t brightness) {
-  analogWrite(RUN_LED, brightness);
-}
-//========================== END ==========================//
 
 void RESTART(){
   Serial.println("restart");
 }
 
-void saveToEEPROM() {
-  //Serial.println("Menyimpan data ke EEPROM...");
-  int addr = 0;
-
-  for (int h = 0; h < HARI_TOTAL; h++) {
-    for (int w = 0; w < WAKTU_TOTAL; w++) {
-      EEPROM.put(addr, jadwal[h][w]);
-      addr += sizeof(WaktuConfig);
-    }
-  }
-
-  for (int i = 0; i < MAX_FILE; i++) {
-    EEPROM.put(addr, durasiAdzan[i]);
-    addr += sizeof(uint16_t);
-  }
-
-  for (int f = 0; f < MAX_FOLDER; f++) {
-    for (int i = 0; i < MAX_FILE; i++) {
-      EEPROM.put(addr, durasiTartil[f][i]);
-      addr += sizeof(uint16_t);  // perbaikan: sebelumnya kamu baca uint16_t, padahal simpan uint32_t
-      
-    }
-  }
-
-  EEPROM.write(addr, volumeDFPlayer);
-  addr += sizeof(volumeDFPlayer);
-
-  for (int i = 0; i < WAKTU_TOTAL; i++) {
-    EEPROM.write(addr++, jamSholat[i]);
-    EEPROM.write(addr++, menitSholat[i]);
-  }
-
- // EEPROM.write(addr++, EEPROM_MAGIC); // simpan MAGIC di akhir
-
-#if defined(ESP8266) || defined(ESP32)
-  EEPROM.commit();  // WAJIB untuk ESP
-#endif
-
-}
-
-void loadFromEEPROM() {
-  int addr = 0;
-
-  for (int h = 0; h < HARI_TOTAL; h++) {
-    for (int w = 0; w < WAKTU_TOTAL; w++) {
-      EEPROM.get(addr, jadwal[h][w]);
-      addr += sizeof(WaktuConfig);
-      /*/============ DEBUG =============//
-      Serial.print("HR:"); Serial.print(h);
-      Serial.print(" W"); Serial.print(w);
-      Serial.print(" Aktif:"); Serial.print(jadwal[h][w].aktif);
-      Serial.print(" Adzan:"); Serial.print(jadwal[h][w].aktifAdzan);
-      Serial.print(" FileAdzan:"); Serial.print(jadwal[h][w].fileAdzan);
-      Serial.print(" TartilDulu:"); Serial.print(jadwal[h][w].tartilDulu);
-      Serial.print(" Folder:"); Serial.print(jadwal[h][w].folder);
-      Serial.print(" List:");
-      Serial.print(jadwal[h][w].list[0]); Serial.print("-");
-      Serial.print(jadwal[h][w].list[1]); Serial.print("-");
-      Serial.print(jadwal[h][w].list[2]); Serial.print("-");
-      Serial.print(jadwal[h][w].list[3]); Serial.print("-");
-      Serial.println(jadwal[h][w].list[4]);
-      //================================/*/
-    }
-  }
-
-  for (int i = 0; i < MAX_FILE; i++) {
-    EEPROM.get(addr, durasiAdzan[i]);
-    addr += sizeof(uint16_t);
-    //============ DEBUG =============//
-//  Serial.print("adzan["); Serial.print(i);
-//  Serial.print("] = "); Serial.println(durasiAdzan[i]);
-    //================================//
-  }
-
-  for (int f = 0; f < MAX_FOLDER; f++) {
-    for (int i = 0; i < MAX_FILE; i++) {
-      EEPROM.get(addr, durasiTartil[f][i]);
-      addr += sizeof(uint16_t);  // perbaikan: harus cocok dengan penyimpanan
-      //============ DEBUG =============//
-//    Serial.print("Tartil["); Serial.print(f); Serial.print("]["); Serial.print(i);
-//    Serial.print("] = "); Serial.println(durasiTartil[f][i]);
-      //================================//
-    }
-  }
-
-  EEPROM.get(addr, volumeDFPlayer);
-  addr += sizeof(volumeDFPlayer);
-  //============ DEBUG =============//
-  //Serial.println("VOL:" + String(volumeDFPlayer));
-  //================================//
-  
-  for (int i = 0; i < WAKTU_TOTAL; i++) {
-    EEPROM.get(addr, jamSholat[i]); addr += sizeof(uint8_t);
-    EEPROM.get(addr, menitSholat[i]); addr += sizeof(uint8_t);
-    /*/============ DEBUG =============//
-    Serial.print("jamSholat["); Serial.print(i);
-    Serial.print("] = "); Serial.println(jamSholat[i]);
-    Serial.print("menitSholat["); Serial.print(i);
-    Serial.print("] = "); Serial.println(menitSholat[i]);
-    //================================/*/
-  }
-}
