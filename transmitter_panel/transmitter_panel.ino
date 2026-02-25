@@ -18,8 +18,9 @@ bool modeOTA = false;
 
 bool stateRestart  = false;
 String pass;
+bool passwordReady = false;
 
-void getData(String input) {
+void getData(const char* input) {
   Serial.println(input);
   // Di sini bisa tambahkan pengolahan data lebih lanjut
 }
@@ -29,21 +30,33 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
     case WStype_CONNECTED:
       clientReady[num] = false;
       break;
+
     case WStype_DISCONNECTED:
       clientReady[num] = false;
       break;
+
     case WStype_TEXT: {
+      // Kita tetap gunakan String sementara untuk kemudahan parsing
       String msg = String((char*)payload);
+
       if (msg == "CLIENT_READY") {
         clientReady[num] = true;
-      } else if (msg == "restart") {
-        getData(msg + "=1");
+      } 
+      else if (msg == "restart") {
+        // PERBAIKAN: Gunakan String sementara untuk penggabungan, lalu kirim .c_str()
+        String temp = msg + "=1";
+        getData(temp.c_str()); 
+        
         delay(500);
         ESP.restart();
-      } else if (msg == "jadwal") {
-        getData(msg + "=1");
-      }else {
-        getData(msg);
+      } 
+      else if (msg == "jadwal") {
+        String temp = msg + "=1";
+        getData(temp.c_str());
+      } 
+      else {
+        // PERBAIKAN: Kirim isi String msg sebagai const char*
+        getData(msg.c_str());
       }
       break;
     }
@@ -52,280 +65,299 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
 
 void handleSetTime() {
   String data = "";
+  char dataBuffer[50];
+  
    if (server.hasArg("Tm")) {
-    data = server.arg("Tm");
-    data = "Tm=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "Tm=%s", server.arg("Tm").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain", "OK");//"Settingan jam berhasil diupdate");
+    return;
   }
   if (server.hasArg("text")) {
-    data = server.arg("text");
-    data = "text=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "text=%s", server.arg("text").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain", "OK");//"Settingan text berhasil diupdate");
+    return;
   }
   if (server.hasArg("name")) {
-    data = server.arg("name");
-    data = "name=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "name=%s", server.arg("name").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain", "OK");//"Settingan nama berhasil diupdate");
+    return;
   }
   if (server.hasArg("Br")) {
-    data  = server.arg("Br");
-    data = "Br=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "Br=%s", server.arg("Br").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain", "OK");//"Kecerahan berhasil diupdate");
+    return;
   }
   if (server.hasArg("Spdt")) {
-    data = server.arg("Spdt"); // Atur kecepatan date
-    data = "Spdt=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "Spdt=%s", server.arg("Spdt").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain", "OK");//"Kecepatan kalender berhasil diupdate");
+    return;
   }
   if (server.hasArg("Sptx1")) {
-    data = server.arg("Sptx1"); // Atur kecepatan text
-    data = "Sptx1=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "Sptx1=%s", server.arg("Sptx1").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain", "OK");//"Kecepatan info 1 berhasil diupdate");
+    return;
   }
   if (server.hasArg("Sptx2")) {
-    data = server.arg("Sptx2"); // Atur kecepatan text
-    data = "Sptx2=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "Sptx2=%s", server.arg("Sptx2").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain", "OK");//"Kecepatan info 2 berhasil diupdate");
+    return;
   }
   if (server.hasArg("Sptx3")) {
-    data = server.arg("Sptx3"); // Atur kecepatan text
-    data = "Sptx3=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "Sptx3=%s", server.arg("Sptx3").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain", "OK");//"Kecepatan info 2 berhasil diupdate");
+    return;
   }
   if (server.hasArg("Sptx4")) {
-    data = server.arg("Sptx4"); // Atur kecepatan text
-    data = "Sptx4=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "Sptx4=%s", server.arg("Sptx4").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain", "OK");//"Kecepatan info 2 berhasil diupdate");
+    return;
   }
   if (server.hasArg("Sptx5")) {
-    data = server.arg("Sptx5"); // Atur kecepatan text
-    data = "Sptx5=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "Sptx5=%s", server.arg("Sptx5").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain", "OK");//"Kecepatan info 2 berhasil diupdate");
+    return;
   }
   if (server.hasArg("Spnm")) {
-    data = server.arg("Spnm"); // Atur kecepatan text
-    data = "Spnm=" + data;
-   // Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "Spnm=%s", server.arg("Spnm").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain", "OK");//"Kecepatan nama berhasil diupdate");
+    return;
   }
   if (server.hasArg("Iq")) {
-    data = server.arg("Iq"); // Atur koreksi iqomah
-    data = "Iq=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "Iq=%s", server.arg("Iq").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain", "OK");//"iqomah diupdate");
+    return;
   }
   if (server.hasArg("Dy")) {
-    data = server.arg("Dy"); // Atur durasi adzan
-    data = "Dy=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "Dy=%s", server.arg("Dy").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain", "OK");//"displayBlink diupdate");
+    return;
   }
   if (server.hasArg("Kr")) {
-    data = server.arg("Kr"); // Atur koreksi waktu jadwal sholat
-    data = "Kr=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "Kr=%s", server.arg("Kr").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain", "OK");//"Selisih jadwal sholat diupdate");
+    return;
   }
   if (server.hasArg("Lt")) {
-    data = server.arg("Lt"); // Atur latitude
-    data = "Lt=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "Lt=%s", server.arg("Lt").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain", "OK");//"latitude diupdate");
+    return;
   }
   if (server.hasArg("Lo")) {
-    data = server.arg("Lo"); // Atur latitude
-    data = "Lo=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "Lo=%s", server.arg("Lo").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain", "OK");//"longitude diupdate");
+    return;
   }
   if (server.hasArg("Tz")) {
-    data = server.arg("Tz"); // Atur latitude
-    data = "Tz=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "Tz=%s", server.arg("Tz").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain", "OK");//"timezone diupdate");
+    return;
   }
   if (server.hasArg("Al")) {
-    data = server.arg("Al"); // Atur latitude
-    data = "Al=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "Al=%s", server.arg("Al").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain", "OK");//"altitude diupdate");
+    return;
   }
   if (server.hasArg("Da")) { 
-    data = server.arg("Da"); 
-    data = "Da=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "Da=%s", server.arg("Da").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain", "OK");// "durasi adzan diupdate");
+    return;
   }
   if (server.hasArg("CoHi")) {
-    data = server.arg("CoHi"); // Atur latitude    data = "CoHi=" + data;
-    data = "CoHi=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "CoHi=%s", server.arg("CoHi").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain", "OK");//"coreksi hijriah diupdate");
+    return;
   }
 
   if (server.hasArg("Bzr")) {
-    data = server.arg("Bzr"); // Atur status buzzer
-    data = "Bzr=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "Bzr=%s", server.arg("Bzr").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
+    return;
   }
   if (server.hasArg("bzrClk")) {
-    data = server.arg("bzrClk"); // Atur status buzzer
-    data = "bzrClk=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "bzrClk=%s", server.arg("bzrClk").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
+    return;
   }
   if (server.hasArg("alarm")) {
-    data = server.arg("alarm"); // Atur status buzzer
-    data = "alarm=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "alarm=%s", server.arg("alarm").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
+    return;
   }
   if (server.hasArg("alarmOn")) {
-    data = server.arg("alarmOn"); // Atur status buzzer
-    data = "alarmOn=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "alarmOn=%s", server.arg("alarmOn").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
+    return;
   }
   if (server.hasArg("alarmOff")) {
     data = server.arg("alarmOff"); // Atur status buzzer
     data = "alarmOff=" + data;
-    //Serial.println(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "alarmOff=%s", server.arg("alarmOff").c_str());
+    getData(dataBuffer);
     server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
+    return;
   }
   if (server.hasArg("mode")) {
-    data = server.arg("mode"); // Atur status mode
-    data = "mode=" + data;
-    kirimDataKeClient(data);
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "mode=%s", server.arg("mode").c_str());
+    getData(dataBuffer);
+    kirimDataKeClient(dataBuffer);
     server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
+    return;
   }
-   if (server.hasArg("PLAY")) {//
-    data = server.arg("PLAY"); // Atur status play
-    //Serial.println("data mentah: " + data);
+  if (server.hasArg("PLAY")) {
+    // 1. Ambil data mentah sebagai String hanya untuk parsing
+    String mentah = server.arg("PLAY"); 
+    
     int idx = 0;
-    byte folder = getIntPart(data,idx);
-    byte file   = getIntPart(data,idx);
-    data = "PLAY:" + String(folder) + "," + String(file);
-    kirimDataKeClient(data);
-    //getData(data);
-    server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
-  }
-  if (server.hasArg("PLAD")) {//
-    data = server.arg("PLAD"); // Atur status play
-    //Serial.println("data mentah: " + data);
-    int idx = 0;
-    byte file   = getIntPart(data,idx);
-    data = "PLAD:" + String(file);
-    kirimDataKeClient(data);
-    //getData(data);
-    server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
-  }
-   if (server.hasArg("STOP")) {
-    data = "STOP";;
-    kirimDataKeClient(data);
-    //getData(data);
-    server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
-  }
-  if (server.hasArg("VOL")) {
-    data = server.arg("VOL"); // Atur status mode
-    data = "VOL:" + data;
-    kirimDataKeClient(data);
-    //getData(data);
-    server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
-  }
-  if (server.hasArg("HR")) {
-    data = server.arg("HR"); // Ambil argumen HR
-    kirimDataKeClient("HR:" + data); // (Opsional) Kirim juga ke semua client via WebSocket
+    byte folder = getIntPart(mentah, idx);
+    byte file   = getIntPart(mentah, idx);
+
+    // 2. Format data langsung ke dalam dataBuffer
+    // %d adalah placeholder untuk integer/byte
+    snprintf(dataBuffer, sizeof(dataBuffer), "PLAY:%d,%d", folder, file);
+
+    // 3. Kirim data yang sudah rapi di buffer ke client
+    kirimDataKeClient(dataBuffer); 
+
     server.send(200, "text/plain", "OK");
-  }
-  if (server.hasArg("NAMAFILE")) {//
-    data = server.arg("NAMAFILE"); // Atur status play
-    //Serial.println("data mentah: " + data);
+    return; // Keluar dari fungsi agar lebih efisien
+}
+
+// --- PLAD ---
+  if (server.hasArg("PLAD")) {
+    String mentah = server.arg("PLAD");
     int idx = 0;
-    byte folder = getIntPart(data,idx);
-    byte file   = getIntPart(data,idx);
-    int durasi = getIntPart(data,idx);
-    data = "NAMAFILE:" + String(folder) + "," + String(file)+ "," + String(durasi);
-    kirimDataKeClient(data);
-    //getData(data);
-    server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
+    byte file = getIntPart(mentah, idx);
+    snprintf(dataBuffer, sizeof(dataBuffer), "PLAD:%d", file);
+    kirimDataKeClient(dataBuffer);
+    server.send(200, "text/plain", "OK");
+    return;
   }
-  if (server.hasArg("ADZAN")) {//
-    data = server.arg("ADZAN"); // Atur status play
+
+  // --- STOP ---
+  if (server.hasArg("STOP")) {
+    kirimDataKeClient("STOP"); // Langsung kirim teks statis
+    server.send(200, "text/plain", "OK");
+    return;
+  }
+
+  // --- VOL ---
+  if (server.hasArg("VOL")) {
+    snprintf(dataBuffer, sizeof(dataBuffer), "VOL:%s", server.arg("VOL").c_str());
+    kirimDataKeClient(dataBuffer);
+    server.send(200, "text/plain", "OK");
+    return;
+  }
+
+  // --- HR ---
+  if (server.hasArg("HR")) {
+    snprintf(dataBuffer, sizeof(dataBuffer), "HR:%s", server.arg("HR").c_str());
+    kirimDataKeClient(dataBuffer);
+    server.send(200, "text/plain", "OK");
+    return;
+  }
+
+  // --- NAMAFILE ---
+  if (server.hasArg("NAMAFILE")) {
+    String mentah = server.arg("NAMAFILE");
     int idx = 0;
-    byte file = getIntPart(data,idx);
-    int durasi   = getIntPart(data,idx);
-    data = "ADZAN:" + String(file) + "," + String(durasi);
-    kirimDataKeClient(data);
-    //getData(data);
-    server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
+    byte folder = getIntPart(mentah, idx);
+    byte file   = getIntPart(mentah, idx);
+    int durasi  = getIntPart(mentah, idx);
+    snprintf(dataBuffer, sizeof(dataBuffer), "NAMAFILE:%d,%d,%d", folder, file, durasi);
+    kirimDataKeClient(dataBuffer);
+    server.send(200, "text/plain", "OK");
+    return;
   }
-   if (server.hasArg("At")) {
-    data = server.arg("At"); // Atur status buzzer
-    data = "At:" + data;
-    kirimDataKeClient(data);
-    server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
+
+  // --- ADZAN ---
+  if (server.hasArg("ADZAN")) {
+    String mentah = server.arg("ADZAN");
+    int idx = 0;
+    byte file  = getIntPart(mentah, idx);
+    int durasi = getIntPart(mentah, idx);
+    snprintf(dataBuffer, sizeof(dataBuffer), "ADZAN:%d,%d", file, durasi);
+    kirimDataKeClient(dataBuffer);
+    server.send(200, "text/plain", "OK");
+    return;
   }
-   if (server.hasArg("Vc")) {
-    data = server.arg("Vc"); // Atur status buzzer
-    data = "Vc:" + data;
-    kirimDataKeClient(data);
-    server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
+
+  // --- At ---
+  if (server.hasArg("At")) {
+    snprintf(dataBuffer, sizeof(dataBuffer), "At:%s", server.arg("At").c_str());
+    kirimDataKeClient(dataBuffer);
+    server.send(200, "text/plain", "OK");
+    return;
   }
+
+  // --- Vc ---
+  if (server.hasArg("Vc")) {
+    snprintf(dataBuffer, sizeof(dataBuffer), "Vc:%s", server.arg("Vc").c_str());
+    kirimDataKeClient(dataBuffer);
+    server.send(200, "text/plain", "OK");
+    return;
+  }
+  
   if (server.hasArg("status")) {
-    data = server.arg("status");
-    data = "status=1" ;
-    getData(data);
+    snprintf(dataBuffer, sizeof(dataBuffer), "%s","status=1");
+    getData(dataBuffer);
     server.send(200, "text/plain", "CONNECTED");
+     return;
   }
  
-  if (server.hasArg("newPassword")) {
-      data = server.arg("newPassword");
-      pass = data;
-      data = "newPassword:" + data;
-      kirimDataKeClient(data);
-      pass = "newPassword=" + pass;
+ if (server.hasArg("newPassword")) {
+      // 1. Ambil password baru dari argumen server
+      String passwordBaru = server.arg("newPassword");
+
+      // 2. Format untuk kirim ke serial/monitor (dataBuffer)
+      snprintf(dataBuffer, sizeof(dataBuffer), "newPassword=%s", passwordBaru.c_str());
+      
+      // 3. Simpan ke variabel global 'pass' untuk digunakan fungsi Restart nanti
+      // Kita langsung isi, tidak perlu ditambah-tambah (+) agar tidak menumpuk
+      pass = dataBuffer; 
+
+      getData(dataBuffer);
+      kirimDataKeClient(dataBuffer);
+
+      // 4. Picu proses restart
       stateRestart = true;
-      server.send(200, "text/plain","OK");// "Password WiFi diupdate");
-    } 
-  data="";
+      
+      server.send(200, "text/plain", "OK");
+      return;
+  }
+  
   //EEPROM.commit();
+}
+
+int getIntPart(String &s, int &pos) {
+  int comma = s.indexOf(',', pos);
+  if (comma == -1) comma = s.length();
+  int val = s.substring(pos, comma).toInt();
+  pos = comma + 1;
+  return val;
 }
 
 
@@ -366,16 +398,6 @@ void cekSerialMonitor() {
   }
 }
 
-int getIntPart(String &s, int &pos) {
-  int comma = s.indexOf(',', pos);
-  if (comma == -1) comma = s.length();
-  int val = s.substring(pos, comma).toInt();
-  pos = comma + 1;
-  return val;
-}
-
-bool passwordReady = false;
-
 void waitPasswordFromESP8266() {
   Serial.println("WAIT_PASSWORD");
 
@@ -395,7 +417,7 @@ void waitPasswordFromESP8266() {
           pwd.toCharArray(password, 9);   // simpan ke buffer password
           passwordReady = true;
 
-          Serial.println("PWD_OK");       // ACK ke ESP8266
+          Serial.println(F("PWD_OK"));       // ACK ke ESP8266
         }
       }
     }
@@ -421,10 +443,10 @@ void loop() {
     server.handleClient();
     webSocket.loop();
     cekSerialMonitor();
-    Restart(pass);
+    Restart(pass.c_str());
 }
 
-void Restart(String msg){
+void Restart(const char* msg){
   if(!stateRestart) return;
 
   static uint32_t sv = 0;
