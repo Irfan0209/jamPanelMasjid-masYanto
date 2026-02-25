@@ -22,21 +22,21 @@ void saveToEEPROM() {
     }
   }
 
-  EEPROM.write(addr, volumeDFPlayer);
+  EEPROM.put(addr, volumeDFPlayer);
   addr += sizeof(volumeDFPlayer);
 
   for (int i = 0; i < WAKTU_TOTAL; i++) {
-    EEPROM.write(addr++, jamSholat[i]);
-    EEPROM.write(addr++, menitSholat[i]);
+    EEPROM.put(addr++, jamSholat[i]);
+    EEPROM.put(addr++, menitSholat[i]);
   }
 
-  EEPROM.write(addr++, autoTartilEnable ? 1 : 0);
+  EEPROM.put(addr++, autoTartilEnable ? 1 : 0);
 
-  EEPROM.write(addr++, voiceClock ? 1 : 0);
+  EEPROM.put(addr++, voiceClock ? 1 : 0);
 
   // Simpan password
   for (int i = 0; i < PASSWORD_LEN; i++) {
-    EEPROM.write(addr++, password[i]);
+    EEPROM.put(addr++, password[i]);
   }
 
 #if defined(ESP8266) || defined(ESP32)

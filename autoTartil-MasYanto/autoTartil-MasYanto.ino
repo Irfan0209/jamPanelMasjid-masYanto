@@ -179,7 +179,7 @@ void loop() {
   cekSelesaiManual();
   getStatusRun();
   cekStatusSystem();
- // bacaDataSerial();
+//  bacaDataSerial();
 
  if (!wifiConnected && millis() - lastWiFiAttempt >= wifiRetryInterval) {
     lastWiFiAttempt = millis();
@@ -229,7 +229,6 @@ Serial.print(F("data=" )); Serial.println(data);
 lastTimeReceived = millis();
  // --- Parsing TIME ---
 if (data.startsWith("TIME:")) {
-  //lastTimeReceived = millis();
   int idx = 5;
   uint8_t jam    = getIntPart(data, idx);
   uint8_t menit  = getIntPart(data, idx);
@@ -312,7 +311,9 @@ else if (data.startsWith("PLAY:")) {
   if (folder >= 1 && folder < 12 && file >= 1 && file < MAX_FILE) {
     uint16_t durasi = durasiTartil[folder-1][file];  // ambil dari array
     if (durasi > 0) {
-      dfplayer.playFolder(folder, file);
+      //dfplayer.playFolder(folder, file);
+      dfplayer.volume(volumeDFPlayer);
+      dfplayer.play(file);
       //============ DEBUG =============//
 //      Serial.print("Memutar manual: folder "); Serial.print(folder);
 //      Serial.print(", file "); Serial.print(file);
@@ -341,7 +342,9 @@ else if (data.startsWith("PLAD:")) {
 //    Serial.print("file "); Serial.print(file); Serial.print(" ");
 //    Serial.print(durasi); Serial.println(" detik");
     if (durasi > 0) {
-      dfplayer.playFolder(11, file);
+      //dfplayer.playFolder(11, file);
+      dfplayer.volume(volumeDFPlayer);
+      dfplayer.play(file);
       digitalWrite(RELAY_PIN, LOW);//relay NYALA
       adzanCounter         = 0;
       targetDurasiAdzan    = durasi;
