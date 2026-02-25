@@ -1,12 +1,3 @@
-/*
-  Auto Tart.tick();m with Arduino Micro + ESP8266 + DFPlayer Mini
-  --------------------------------------------------------------
-  - ESP8266: menerima konfigurasi dari App Inventor via AP + HTTP GET
-  - Arduino micro: membaca konfigurasi via Serial, menyimpan konfigurasi dalam array
-  - Arduino mengatur jadwal berdasarkan waktu dan memutar rekaman tartil dan adzan
-  - DFPlayer Mini: memainkan file tartil & adzan
-  - Relay: mengaktifkan power amplifier saat audio diputar
-*/
 
 #include <DFRobotDFPlayerMini.h>
 #include <EEPROM.h>
@@ -38,7 +29,7 @@ IPAddress subnet(255, 255, 255, 0);
 #define RELAY_PIN         26
 #define RUN_LED           13
 #define NORMAL_STATUS_LED 14
-#define LED_WIFI          25
+#define LED_WIFI          27
 
 #define EEPROM_SIZE 1000
 
@@ -233,7 +224,8 @@ int getIntPart(String &s, int &pos) {
 }
 
 void parseData(String data) {
-//Serial.println("data=" + data);
+Serial.print(F("data=" )); Serial.println(data);
+
 lastTimeReceived = millis();
  // --- Parsing TIME ---
 if (data.startsWith("TIME:")) {
@@ -244,9 +236,9 @@ if (data.startsWith("TIME:")) {
   uint8_t detik  = getIntPart(data, idx);
   uint8_t hari   = getIntPart(data, idx);
 
-  if (jam < 24 && menit < 60 && detik < 60 && hari < 7) {
-    setTime(jam, menit, detik, 1, 1, 2024);
-    currentDay = hari;
+if (jam < 24 && menit < 60 && detik < 60 && hari < 7) {
+  setTime(jam, menit, detik, 1, 1, 2024);
+  currentDay = hari;
     //============ DEBUG =============//
 //    Serial.print(F("Waktu diatur ke: "));
 //    Serial.print(jam); Serial.print(":");
@@ -443,14 +435,14 @@ else if (data.startsWith("At:")) {
 }
 
 // --- Parsing newPassword ---
-else if (data.startsWith("newPassword:")) {
+else if (data.startsWith("newPassword=")) {
   String pwd = data.substring(12);
 
   if (pwd.length() == 8) {
     pwd.toCharArray(password, 9); // copy aman
 
-    Serial.print("Password baru diterima: ");
-    Serial.println(password);
+    // Serial.print("Password baru diterima: ");
+    // Serial.println(password);
 
     saveToEEPROM();   // simpan di EEPROM ESP8266 (bukan ESP-01)
     delay(1000);
@@ -468,8 +460,3 @@ else if (data.startsWith("newPassword:")) {
 data="";
 }
 //============================== END =================================//
-
-void RESTART(){
-  Serial.println("restart");
-}
-

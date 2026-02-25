@@ -59,9 +59,10 @@ void cekDanPutarSholatNonBlocking() {
   // Cetak hanya sekali pada menit tertentu
   if ((minute() == 0 || minute() == 15 || minute() == 30 || minute() == 45) && second() == 0 && !stateJadwal) {
     stateJadwal = true;
-    Serial.println("jadwal");
+    //Serial.println("jadwal");
+    if(wsConnected){ webSocket.sendTXT("jadwal"); }
   } else if (second() != 0) {
-  stateJadwal = false;
+    stateJadwal = false;
   } 
 
   

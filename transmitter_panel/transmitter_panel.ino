@@ -64,8 +64,8 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
 }
 
 void handleSetTime() {
-  String data = "";
-  char dataBuffer[50];
+  //String data = "";
+  char dataBuffer[250];
   
    if (server.hasArg("Tm")) {
     snprintf(dataBuffer, sizeof(dataBuffer), "Tm=%s", server.arg("Tm").c_str());
@@ -213,8 +213,6 @@ void handleSetTime() {
     return;
   }
   if (server.hasArg("alarmOff")) {
-    data = server.arg("alarmOff"); // Atur status buzzer
-    data = "alarmOff=" + data;
     snprintf(dataBuffer, sizeof(dataBuffer), "alarmOff=%s", server.arg("alarmOff").c_str());
     getData(dataBuffer);
     server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");

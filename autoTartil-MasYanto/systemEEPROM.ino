@@ -52,7 +52,7 @@ void loadFromEEPROM() {
     for (int w = 0; w < WAKTU_TOTAL; w++) {
       EEPROM.get(addr, jadwal[h][w]);
       addr += sizeof(WaktuConfig);
-      /*/============ DEBUG =============//
+      //============ DEBUG =============//
       Serial.print("HR:"); Serial.print(h);
       Serial.print(" W"); Serial.print(w);
       Serial.print(" Aktif:"); Serial.print(jadwal[h][w].aktif);
@@ -74,8 +74,8 @@ void loadFromEEPROM() {
     EEPROM.get(addr, durasiAdzan[i]);
     addr += sizeof(uint16_t);
     //============ DEBUG =============//
-//  Serial.print("adzan["); Serial.print(i);
-//  Serial.print("] = "); Serial.println(durasiAdzan[i]);
+ Serial.print("adzan["); Serial.print(i);
+ Serial.print("] = "); Serial.println(durasiAdzan[i]);
     //================================//
   }
 
@@ -93,7 +93,7 @@ void loadFromEEPROM() {
   EEPROM.get(addr, volumeDFPlayer);
   addr += sizeof(volumeDFPlayer);
   //============ DEBUG =============//
-  Serial.println("VOL:" + String(volumeDFPlayer));
+  Serial.print("VOL:"); Serial.println(volumeDFPlayer);
   //================================//
   
   for (int i = 0; i < WAKTU_TOTAL; i++) {
