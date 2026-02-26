@@ -35,7 +35,7 @@ IPAddress subnet(255, 255, 255, 0);
 
 #define HARI_TOTAL  8 // 7 hari + SemuaHari (index ke-7)
 #define WAKTU_TOTAL 5
-#define MAX_FILE    30
+#define MAX_FILE    50
 #define MAX_FOLDER  2 //3
 #define JEDA_ANTAR_TARTIL 50 //500 jeda antar file tartil dalam milidetik
 
@@ -179,7 +179,7 @@ void loop() {
   cekSelesaiManual();
   getStatusRun();
   cekStatusSystem();
-//  bacaDataSerial();
+  //bacaDataSerial();
 
  if (!wifiConnected && millis() - lastWiFiAttempt >= wifiRetryInterval) {
     lastWiFiAttempt = millis();
