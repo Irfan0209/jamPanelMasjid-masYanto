@@ -37,7 +37,7 @@ IPAddress subnet(255, 255, 255, 0);
 #define WAKTU_TOTAL 5
 #define MAX_FILE    50
 #define MAX_FOLDER  2 //3
-#define JEDA_ANTAR_TARTIL 50 //500 jeda antar file tartil dalam milidetik
+#define JEDA_ANTAR_TARTIL 20 //500 jeda antar file tartil dalam milidetik
 
 //#define DEBUG 1
 
@@ -98,7 +98,7 @@ static uint32_t lastWaveMillis = 0;
 
 bool lastNormalStatus = false;
 uint32_t lastTimeReceived = 0;
-constexpr uint32_t TIMEOUT_INTERVAL = 70000; // 70 detik, lebih dari 1 menit
+constexpr uint32_t TIMEOUT_INTERVAL = 50000; // 70 detik, lebih dari 1 menit
 
 bool wsConnected = false;
 bool wifiConnected = false;
@@ -136,8 +136,8 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
 
 void setup() {
   EEPROM.begin(EEPROM_SIZE);//
-  digitalWrite(RELAY_PIN, HIGH); // Awal mati
   
+  digitalWrite(RELAY_PIN, HIGH); // Awal mati
   pinMode(RUN_LED, OUTPUT);
   pinMode(RELAY_PIN, OUTPUT);
   pinMode(LED_WIFI, OUTPUT);
@@ -166,6 +166,7 @@ void setup() {
   dfplayer.volume(volumeDFPlayer);
   webSocket.onEvent(webSocketEvent);
   webSocket.setReconnectInterval(5000);
+  digitalWrite(RELAY_PIN, HIGH); // Awal mati
 }
 
 void loop() {
@@ -313,7 +314,7 @@ else if (data.startsWith("PLAY:")) {
     if (durasi > 0) {
       //dfplayer.playFolder(folder, file);
       dfplayer.volume(volumeDFPlayer);
-      dfplayer.play(file);
+      dfplayer.playFolder(1,file);
       //============ DEBUG =============//
 //      Serial.print("Memutar manual: folder "); Serial.print(folder);
 //      Serial.print(", file "); Serial.print(file);
@@ -344,7 +345,7 @@ else if (data.startsWith("PLAD:")) {
     if (durasi > 0) {
       //dfplayer.playFolder(11, file);
       dfplayer.volume(volumeDFPlayer);
-      dfplayer.play(file);
+      dfplayer.playFolder(1,file);
       digitalWrite(RELAY_PIN, LOW);//relay NYALA
       adzanCounter         = 0;
       targetDurasiAdzan    = durasi;

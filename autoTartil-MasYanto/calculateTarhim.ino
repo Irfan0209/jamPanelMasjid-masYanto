@@ -36,14 +36,14 @@ void cekSelesaiAdzanManual() {
 //========================== END ====================================//
 
 //========================== mengambil durasi Tartil dan Adzan ===============================//
-uint16_t getDurasiTartil(byte folder, int file) {
+uint16_t getDurasiTartil(byte folder, uint8_t file) {
   if (folder == 0 || folder > MAX_FOLDER || file >= MAX_FILE) return 0;
-  return durasiTartil[folder - 1][file];
+  return durasiTartil[folder - 1][17 + file];
 }
 
-uint16_t getDurasiAdzan(int file) {
+uint16_t getDurasiAdzan(uint8_t file) {
   if (file == 0 || file >= MAX_FILE) return 0;
-  return durasiAdzan[file];
+  return durasiAdzan[12 + file];
 }
 //============================= END ============================================//
 
@@ -59,7 +59,7 @@ void cekDanPutarSholatNonBlocking() {
   // Cetak hanya sekali pada menit tertentu
   if (minute() == 0  && second() == 0 && !stateJadwal) {
     stateJadwal = true;
-    //Serial.println("jadwal");
+    //Serial.println(F("jadwal"));
     if(wsConnected){ webSocket.sendTXT("jadwal"); }
   } else if (second() != 0) {
     stateJadwal = false;
@@ -72,7 +72,7 @@ void cekDanPutarSholatNonBlocking() {
     if (!cfg.aktif) continue;
     if (jamSholat[w] == 0 && menitSholat[w] == 0) continue;  // Lewati jadwal tidak valid
     
-    uint16_t totalDurasi = 0;
+    uint32_t totalDurasi = 0;
     
     // Hitung total durasi dari file tartil
     for (byte i = 0; i < 5; i++) {
@@ -86,6 +86,8 @@ void cekDanPutarSholatNonBlocking() {
     uint32_t jadwalDetik = jamSholat[w] * 3600UL + menitSholat[w] * 60UL;
     uint32_t triggerDetik = cfg.tartilDulu ? (jadwalDetik - totalDurasi) : jadwalDetik;
     
+//    Serial.println(detikSekarang);
+//    Serial.println(triggerDetik);
     
     if (triggerDetik > 86400) continue;  // Lewati jika melebihi 1 hari
    
@@ -116,7 +118,7 @@ void cekDanPutarSholatNonBlocking() {
         byte f = cfg.list[tartilIndex];
         targetDurasi = getDurasiTartil(tartilFolder, f);
         lastTick = millis();
-        dfplayer.play(17 + f);
+        dfplayer.playFolder(1,17 + f);
         //dfplayer.playFolder(tartilFolder, f);
 
 #if DEBUG
@@ -129,7 +131,7 @@ void cekDanPutarSholatNonBlocking() {
         adzanCounter = 0;
         lastAdzanTick = millis();
         adzanSedangDiputar = true;
-        dfplayer.play(12 + cfg.fileAdzan);
+        dfplayer.playFolder(1,12 + cfg.fileAdzan);
         //dfplayer.playFolder(11, cfg.fileAdzan);
 
 #if DEBUG
@@ -157,7 +159,7 @@ void cekSelesaiTartil() {
           targetDurasi = getDurasiTartil(tartilFolder, f);
           tartilCounter = 0;
           lastTick = millis();
-          dfplayer.play(17 + f);
+          dfplayer.playFolder(1,17 + f);
           //dfplayer.playFolder(tartilFolder, f);
 #if DEBUG
           Serial.print("Memutar tartil selanjutnya: ");
@@ -196,7 +198,7 @@ void cekSelesaiTartil() {
           targetDurasiAdzan = getDurasiAdzan(currentCfg->fileAdzan);
           lastAdzanTick = millis();
           adzanSedangDiputar = true;
-          dfplayer.play(12 + currentCfg->fileAdzan);
+          dfplayer.playFolder(1,12 + currentCfg->fileAdzan);
           //dfplayer.playFolder(11, currentCfg->fileAdzan);
 #if DEBUG
           Serial.println("Tartil selesai, memutar adzan.");

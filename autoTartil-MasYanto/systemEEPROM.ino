@@ -54,18 +54,18 @@ void loadFromEEPROM() {
       addr += sizeof(WaktuConfig);
       //============ DEBUG =============//
     #if DEBUG
-      Serial.print("HR:"); Serial.print(h);
-      Serial.print(" W"); Serial.print(w);
-      Serial.print(" Aktif:"); Serial.print(jadwal[h][w].aktif);
-      Serial.print(" Adzan:"); Serial.print(jadwal[h][w].aktifAdzan);
-      Serial.print(" FileAdzan:"); Serial.print(jadwal[h][w].fileAdzan);
-      Serial.print(" TartilDulu:"); Serial.print(jadwal[h][w].tartilDulu);
-      Serial.print(" Folder:"); Serial.print(jadwal[h][w].folder);
-      Serial.print(" List:");
-      Serial.print(jadwal[h][w].list[0]); Serial.print("-");
-      Serial.print(jadwal[h][w].list[1]); Serial.print("-");
-      Serial.print(jadwal[h][w].list[2]); Serial.print("-");
-      Serial.print(jadwal[h][w].list[3]); Serial.print("-");
+      Serial.print(F("HR:")); Serial.print(h);
+      Serial.print(F(" W")); Serial.print(w);
+      Serial.print(F(" Aktif:")); Serial.print(jadwal[h][w].aktif);
+      Serial.print(F(" Adzan:")); Serial.print(jadwal[h][w].aktifAdzan);
+      Serial.print(F(" FileAdzan:")); Serial.print(jadwal[h][w].fileAdzan);
+      Serial.print(F(" TartilDulu:")); Serial.print(jadwal[h][w].tartilDulu);
+      Serial.print(F(" Folder:")); Serial.print(jadwal[h][w].folder);
+      Serial.print(F(" List:"));
+      Serial.print(jadwal[h][w].list[0]); Serial.print(F("-"));
+      Serial.print(jadwal[h][w].list[1]); Serial.print(F("-"));
+      Serial.print(jadwal[h][w].list[2]); Serial.print(F("-"));
+      Serial.print(jadwal[h][w].list[3]); Serial.print(F("-"));
       Serial.println(jadwal[h][w].list[4]);
     #endif
       //================================/*/
@@ -77,8 +77,8 @@ void loadFromEEPROM() {
     addr += sizeof(uint16_t);
     //============ DEBUG =============//
     #if DEBUG
-      Serial.print("adzan["); Serial.print(i);
-      Serial.print("] = "); Serial.println(durasiAdzan[i]);
+      Serial.print(F("adzan[")); Serial.print(i);
+      Serial.print(F("] = ")); Serial.println(durasiAdzan[i]);
     #endif
     //================================//
   }
@@ -89,8 +89,8 @@ void loadFromEEPROM() {
       addr += sizeof(uint16_t);  // perbaikan: harus cocok dengan penyimpanan
       //============ DEBUG =============//
       #if DEBUG
-        Serial.print("Tartil["); Serial.print(f); Serial.print("]["); Serial.print(i);
-        Serial.print("] = "); Serial.println(durasiTartil[f][i]);
+        Serial.print(F("Tartil[")); Serial.print(f); Serial.print(F("][")); Serial.print(i);
+        Serial.print(F("] = ")); Serial.println(durasiTartil[f][i]);
       #endif
       //================================//
     }
@@ -105,10 +105,10 @@ void loadFromEEPROM() {
     EEPROM.get(addr, menitSholat[i]); addr += sizeof(uint8_t);
     //============ DEBUG =============//
     #if DEBUG
-      Serial.print("jamSholat["); Serial.print(i);
-      Serial.print("] = "); Serial.println(jamSholat[i]);
-      Serial.print("menitSholat["); Serial.print(i);
-      Serial.print("] = "); Serial.println(menitSholat[i]);
+      Serial.print(F("jamSholat[")); Serial.print(i);
+      Serial.print(F("] = ")); Serial.println(jamSholat[i]);
+      Serial.print(F("menitSholat[")); Serial.print(i);
+      Serial.print(F("] = ")); Serial.println(menitSholat[i]);
     #endif
     //================================/*/
   }
@@ -125,12 +125,12 @@ void loadFromEEPROM() {
   password[PASSWORD_LEN - 1] = '\0'; // safety null-terminator
   
   #if DEBUG
-    Serial.print("password:");
+    Serial.print(F("password:"));
     Serial.println(password);
-    Serial.print("VOL:"); Serial.println(volumeDFPlayer);
-    Serial.print("autoTartilEnable:");
+    Serial.print(F("VOL:")); Serial.println(volumeDFPlayer);
+    Serial.print(F("autoTartilEnable:"));
     Serial.println(autoTartilEnable);
-    Serial.print("voiceClock:");
+    Serial.print(F("voiceClock:"));
     Serial.println(voiceClock);
   #endif
 }
