@@ -36,7 +36,7 @@ void cekSelesaiAdzanManual() {
 //========================== END ====================================//
 
 //========================== mengambil durasi Tartil dan Adzan ===============================//
-uint16_t getDurasiTartil(byte folder, uint8_t file) {
+uint16_t getDurasiTartil(uint8_t folder, uint8_t file) {
   if (folder == 0 || folder > MAX_FOLDER || file >= MAX_FILE) return 0;
   return durasiTartil[folder - 1][17 + file];
 }
