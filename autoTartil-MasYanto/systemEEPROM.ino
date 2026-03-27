@@ -1,21 +1,21 @@
 void saveToEEPROM() {
   //Serial.println("Menyimpan data ke EEPROM...");
-  int addr = 0;
+  uint16_t addr = 0;
 
-  for (int h = 0; h < HARI_TOTAL; h++) {
-    for (int w = 0; w < WAKTU_TOTAL; w++) {
+  for (uint8_t h = 0; h < HARI_TOTAL; h++) {
+    for (uint8_t w = 0; w < WAKTU_TOTAL; w++) {
       EEPROM.put(addr, jadwal[h][w]);
       addr += sizeof(WaktuConfig);
     }
   }
 
-  for (int i = 0; i < MAX_FILE; i++) {
+  for (uint8_t i = 0; i < MAX_FILE; i++) {
     EEPROM.put(addr, durasiAdzan[i]);
     addr += sizeof(uint16_t);
   }
 
-  for (int f = 0; f < MAX_FOLDER; f++) {
-    for (int i = 0; i < MAX_FILE; i++) {
+  for (uint8_t f = 0; f < MAX_FOLDER; f++) {
+    for (uint8_t i = 0; i < MAX_FILE; i++) {
       EEPROM.put(addr, durasiTartil[f][i]);
       addr += sizeof(uint16_t);  // perbaikan: sebelumnya kamu baca uint16_t, padahal simpan uint32_t
       
@@ -25,7 +25,7 @@ void saveToEEPROM() {
   EEPROM.put(addr, volumeDFPlayer);
   addr += sizeof(volumeDFPlayer);
 
-  for (int i = 0; i < WAKTU_TOTAL; i++) {
+  for (uint8_t i = 0; i < WAKTU_TOTAL; i++) {
     EEPROM.put(addr++, jamSholat[i]);
     EEPROM.put(addr++, menitSholat[i]);
   }
@@ -35,7 +35,7 @@ void saveToEEPROM() {
   EEPROM.put(addr++, voiceClock ? 1 : 0);
 
   // Simpan password
-  for (int i = 0; i < PASSWORD_LEN; i++) {
+  for (uint8_t i = 0; i < PASSWORD_LEN; i++) {
     EEPROM.put(addr++, password[i]);
   }
 
@@ -46,10 +46,10 @@ void saveToEEPROM() {
 }
 
 void loadFromEEPROM() {
-  int addr = 0;
+  uint16_t addr = 0;
 
-  for (int h = 0; h < HARI_TOTAL; h++) {
-    for (int w = 0; w < WAKTU_TOTAL; w++) {
+  for (uint8_t h = 0; h < HARI_TOTAL; h++) {
+    for (uint8_t w = 0; w < WAKTU_TOTAL; w++) {
       EEPROM.get(addr, jadwal[h][w]);
       addr += sizeof(WaktuConfig);
       //============ DEBUG =============//
@@ -72,7 +72,7 @@ void loadFromEEPROM() {
     }
   }
 
-  for (int i = 0; i < MAX_FILE; i++) {
+  for (uint8_t i = 0; i < MAX_FILE; i++) {
     EEPROM.get(addr, durasiAdzan[i]);
     addr += sizeof(uint16_t);
     //============ DEBUG =============//
@@ -83,8 +83,8 @@ void loadFromEEPROM() {
     //================================//
   }
 
-  for (int f = 0; f < MAX_FOLDER; f++) {
-    for (int i = 0; i < MAX_FILE; i++) {
+  for (uint8_t f = 0; f < MAX_FOLDER; f++) {
+    for (uint8_t i = 0; i < MAX_FILE; i++) {
       EEPROM.get(addr, durasiTartil[f][i]);
       addr += sizeof(uint16_t);  // perbaikan: harus cocok dengan penyimpanan
       //============ DEBUG =============//
@@ -100,7 +100,7 @@ void loadFromEEPROM() {
   addr += sizeof(volumeDFPlayer);
   
  
-  for (int i = 0; i < WAKTU_TOTAL; i++) {
+  for (uint8_t i = 0; i < WAKTU_TOTAL; i++) {
     EEPROM.get(addr, jamSholat[i]); addr += sizeof(uint8_t);
     EEPROM.get(addr, menitSholat[i]); addr += sizeof(uint8_t);
     //============ DEBUG =============//
@@ -119,7 +119,7 @@ void loadFromEEPROM() {
   voiceClock = EEPROM.read(addr++) == 1;
   
   // Baca password
-  for (int i = 0; i < PASSWORD_LEN; i++) {
+  for (uint8_t i = 0; i < PASSWORD_LEN; i++) {
     password[i] = EEPROM.read(addr++);
   }
   password[PASSWORD_LEN - 1] = '\0'; // safety null-terminator

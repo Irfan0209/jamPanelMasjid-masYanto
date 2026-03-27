@@ -408,7 +408,7 @@ void dwCtr(int x, int y, String Msg){
    Disp.drawText(x+c,y,Msg);
 }
   
-void fType(int x)
+void fType(uint8_t x)
   {
     if(x==0) Disp.setFont(Font0);
     else if(x==1) Disp.setFont(Font1); 
