@@ -46,15 +46,19 @@ void initAnimSholat() {
 void updateAnimSholat() {
 
   if(adzan) return;
+
+  uint32_t now = millis();
+  constexpr uint8_t center = 8;   // 32x16 panel
+  
   if(reset_x) {
     shAnim.phase = PHASE_IN;
     shAnim.sNum  = 0;
     shAnim.x     = 0;
+    now = 0;
+    shAnim.timer = 0;
     reset_x = 0;
   }
   RtcDateTime noww = Rtc.GetDateTime();
-  uint32_t now = millis();
-  constexpr uint8_t center = 8;   // 32x16 panel
 
   switch (shAnim.phase) {
 
@@ -141,15 +145,17 @@ void initAnimMasehi() {
 void updateAnimUpDown(const char* msg) {
 
   if(adzan) return;
+
+  uint32_t now = millis();
+  const uint8_t center = 8;   // 32x16 panel
+  
   if(reset_x) {
     msAnim.phase = PHASE_IN;
     msAnim.sNum  = 0;
     msAnim.x     = 0;
     reset_x = 0;
+    now = 0;
   }
-  
-  uint32_t now = millis();
-  const uint8_t center = 8;   // 32x16 panel
 
   switch (msAnim.phase) {
 
@@ -199,7 +205,7 @@ void jamCenter(){
   RtcDateTime now = Rtc.GetDateTime();
     
   Disp.drawFilledRect(0, 0, 31, 16, 0);
-  Disp.drawLine(31,0,31,16,1);
+  Disp.drawLine(31,0,31,16,0);
   
   if(now.Second() % 2 ){
       Disp.drawCircle(15,4,1,1);

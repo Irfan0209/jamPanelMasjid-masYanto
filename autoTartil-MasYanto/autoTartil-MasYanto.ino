@@ -106,7 +106,7 @@ constexpr uint32_t TIMEOUT_INTERVAL = 50000; // 70 detik, lebih dari 1 menit
 
 bool wsConnected = false;
 bool wifiConnected = false;
-unsigned long lastWiFiAttempt = 0;
+uint32_t lastWiFiAttempt = 0;
 constexpr uint32_t wifiRetryInterval = 5000;
 
 bool autoTartilEnable = true;
@@ -168,6 +168,12 @@ void setup() {
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   lastWiFiAttempt = millis();
+  
+  dfplayer.volume(volumeDFPlayer);
+  webSocket.onEvent(webSocketEvent);
+  webSocket.setReconnectInterval(5000);
+  
+  digitalWrite(RELAY_PIN, HIGH); // Awal mati
 
   // --- Inisialisasi Watchdog Timer untuk ESP32 Core v3.x ---
   esp_task_wdt_config_t wdt_config = {
@@ -179,12 +185,6 @@ void setup() {
   esp_task_wdt_init(&wdt_config);
   esp_task_wdt_add(NULL); // Daftarkan fungsi loop() ke dalam pengawasan anjing penjaga
   Serial.println(F("Watchdog Timer Aktif!"));
-
-  
-  dfplayer.volume(volumeDFPlayer);
-  webSocket.onEvent(webSocketEvent);
-  webSocket.setReconnectInterval(5000);
-  digitalWrite(RELAY_PIN, HIGH); // Awal mati
 }
 
 void loop() {
@@ -200,7 +200,7 @@ void loop() {
   getStatusRun();
   cekStatusSystem();
   //bacaDataSerial();
-
+  
  if (!wifiConnected && millis() - lastWiFiAttempt >= wifiRetryInterval) {
     lastWiFiAttempt = millis();
 
@@ -219,21 +219,40 @@ void loop() {
 
 }
 
-// void bacaDataSerial() {
-//   static String buffer = "";
-//   while (Serial.available()) {
-//     char c = Serial.read();
-//     //Serial.print(c); // DEBUG: tampilkan semua karakter yang diterima
-//     if (c == '\n') {
-//       //Serial.println("\n>> Memanggil parseData()");
-//       parseData(buffer);
-//       buffer = "";
-//     } else {
-//       buffer += c;
-//     }
-//   }
-// }
+#if DEBUG
+ void bacaDataSerial() {
+  // Booking memori statis sebesar 512 byte (sesuaikan jika data lebih panjang)
+  static char buffer[50]; 
+  static uint16_t index = 0;
 
+  while (Serial.available() > 0) {
+    char c = Serial.read();
+
+    // FILTER 1: Hanya terima karakter teks yang valid (ASCII 32 sampai 126)
+    // Karakter sampah/noise (seperti '⸮') akan otomatis diabaikan.
+    if (c >= 32 && c <= 126) {
+      if (index < sizeof(buffer) - 1) { // Pelindung dari Buffer Overflow
+        buffer[index++] = c;
+      }
+    }
+    // FILTER 2: Tanda pesan selesai (Newline '\n' atau Carriage Return '\r')
+    else if (c == '\n' || c == '\r') {
+      if (index > 0) {
+        buffer[index] = '\0'; // Kunci teks dengan null-terminator
+
+        // --- DEBUG PINTU MASUK ---
+        // Serial.print(F("\n>> Memanggil parseData() dengan Teks Bersih: '"));
+        // Serial.print(buffer);
+        // Serial.println(F("'"));
+        // -------------------------
+
+        parseData(buffer); // Kirim teks ke fungsi pembongkar data
+        index = 0;         // Reset index ke 0 untuk siap menerima pesan baru
+      }
+    }
+  }
+}
+ #endif
 /*/================= parsing data dari Akses Point =========================//
 int getIntPart(String &s, int &pos) {
   int comma = s.indexOf(',', pos);
@@ -357,10 +376,10 @@ void parseData(const char* data) {
 //    Serial.print(F(", File: ")); Serial.print(file);
 
     if (folder >= 1 && folder < 12 && file >= 1 && file < MAX_FILE) {
-      uint16_t durasi = durasiTartil[folder - 1][file];
+      uint16_t durasi = durasiTartil[folder - 1][17 + file];
       if (durasi > 0) {
         dfplayer.volume(volumeDFPlayer);
-        dfplayer.playFolder(folder,file);
+        dfplayer.playFolder(folder,17 + file);
         digitalWrite(RELAY_PIN, LOW); // Relay NYALA
         tartilCounter       = 0;
         targetDurasi        = durasi;
@@ -374,14 +393,14 @@ void parseData(const char* data) {
   // --- Parsing PLAD: ---
   else if (strncmp(data, "PLAD:", 5) == 0) {
     uint8_t file = atoi(data + 5);
-    uint16_t durasi = durasiAdzan[file];
+    uint16_t durasi = durasiAdzan[12 + file];
 
 //    Serial.print(F("[DEBUG PLAD] Play Adzan Manual File: ")); Serial.print(file);
 //    Serial.print(F(", Durasi Target: ")); Serial.println(durasi);
     
     if (durasi > 0) {
       dfplayer.volume(volumeDFPlayer);
-      dfplayer.playFolder(2,file);
+      dfplayer.playFolder(2,12 + file);
       digitalWrite(RELAY_PIN, LOW); // Relay NYALA
       adzanCounter             = 0;
       targetDurasiAdzan        = durasi;

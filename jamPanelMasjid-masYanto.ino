@@ -94,7 +94,7 @@ bool       reset_x       = 0;
 /*======library tambahan=======*/
 bool       flagAnim = false;
 float      dataFloat[10];
-int8_t     dataInteger[10];
+//int8_t     dataInteger[10];
 bool       stateSendSholat = false; 
 bool       stateBuzzWar    = 0;
 bool       butuhHitungJadwal = true;
