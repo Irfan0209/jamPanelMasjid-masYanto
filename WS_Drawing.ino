@@ -286,7 +286,10 @@ void nextShowState()
     case ANIM_TEXT2:   show = ANIM_TEXT3; break;
     case ANIM_TEXT3:   show = ANIM_TEXT4; break;
     case ANIM_TEXT4:   show = ANIM_TEXT5; break;
-    case ANIM_TEXT5:   show = ANIM_COUNTER; break;
+//    case ANIM_TEXT5:   show = ANIM_COUNTER; break;
+    case ANIM_TEXT5:   show = (JUMAT)?ANIM_JUMAT1 : ANIM_COUNTER ; break;
+    case ANIM_JUMAT1:   show = ANIM_JUMAT2; break;
+    case ANIM_JUMAT2:   show = ANIM_COUNTER; break;
     case ANIM_COUNTER:   show = ANIM_BIGFONT; line = ANIM_ZONK; reset_x = 1; break;
   }
 }

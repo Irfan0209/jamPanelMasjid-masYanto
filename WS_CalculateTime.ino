@@ -5,19 +5,32 @@ void islam() {
   
   cekJadwalPanel(now.Hour(), now.Minute());
 
+  static bool lastJumat = false;
+  
+  JUMAT = cekJadwalJumat(now.Hour(), now.Minute(), now.DayOfWeek()); 
+   
+//  // Transisi Jumat
+//  if (JUMAT && !lastJumat) {
+//    show = ANIM_JUMAT1;
+//    lastJumat = true;
+//  } 
+//  else if (!JUMAT && lastJumat) {
+//    // Saat Jumat selesai, kembalikan ke jam normal (tapi pastikan tidak sedang Tarhim)
+//    if (!PRE_IQOMAH) show = ANIM_CLOCK;
+//    lastJumat = false;
+//  }
+  
+   // 3. LOGIKA BUNYI JAM TEPAT
   static int8_t lastHalfPlay = -1;
-
-  // Bunyi jam tepat
   if (now.Minute() == 0 && now.Second() == 0 && now.Hour() != lastHalfPlay && config.stateBuzzerClock) {
     lastHalfPlay = now.Hour();
     stateBuzzWar = 1;
   }
 
-  // --- PEMICU TENGAH MALAM (Ganti Hari) ---
-  // Pastikan jadwal dihitung ulang setiap jam 00:00:01
+  // 4. LOGIKA PEMBARUAN JADWAL HARIAN
   static int8_t lastDayCalc = -1;
-  if (now.Day() != lastDayCalc) {
-    lastDayCalc = now.Day();
+  if (now.Minute() == 0 && now.Second() == 0 && now.Hour() != lastDayCalc){
+    lastDayCalc = now.Hour();
     butuhHitungJadwal = true; 
   }
 
@@ -27,19 +40,20 @@ void islam() {
     // ESP.restart(); // (Aktifkan jika memang alat diset untuk restart harian)
   }
 
-  // --- EKSEKUSI RUMUS HANYA JIKA FLAG AKTIF ---
+  // 5. EKSEKUSI RUMUS KALKULASI JWS
   if(butuhHitungJadwal){
-    JWS.Update(config.zonawaktu, config.latitude, config.longitude, config.altitude, now.Year(), now.Month(), now.Day());
-    JWS.setIkhtiSu = dataIhty[0];
-    JWS.setIkhtiDzu = dataIhty[1];
-    JWS.setIkhtiAs = dataIhty[2];
-    JWS.setIkhtiMa = dataIhty[3];
-    JWS.setIkhtiIs = dataIhty[4];
-    JWS.setIkhtiIm = dataIhty[5];
-    Hijir.Update(now.Year(), now.Month(), now.Day(), config.Correction);
-
-    butuhHitungJadwal = false; // Matikan flag setelah selesai menghitung agar CPU kembali santai
-    Serial.println(F("[INFO] Jadwal Sholat dan Hijriah Berhasil Dikalkulasi Ulang!"));
+  
+    for(uint8_t i = 0; i < 2; i++) {
+      JWS.Update(config.zonawaktu, config.latitude, config.longitude, config.altitude, now.Year(), now.Month(), now.Day());
+      JWS.setIkhtiSu = dataIhty[0];
+      JWS.setIkhtiDzu = dataIhty[1];
+      JWS.setIkhtiAs = dataIhty[2];
+      JWS.setIkhtiMa = dataIhty[3];
+      JWS.setIkhtiIs = dataIhty[4];
+      JWS.setIkhtiIm = dataIhty[5];
+      Hijir.Update(now.Year(), now.Month(), now.Day(), config.Correction);
+    }
+    butuhHitungJadwal = false; 
   }
 }
 

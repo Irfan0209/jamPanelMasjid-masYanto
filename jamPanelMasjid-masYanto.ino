@@ -64,6 +64,10 @@ struct Config {
   uint8_t    speedText4;
   uint8_t    speedText5;
   uint8_t    speedName;
+  uint8_t    speedTextJumat1;
+  uint8_t    speedTextJumat2;
+  uint8_t    speedTextIqomah1;
+  uint8_t    speedTextIqomah2;
   bool       stateMode;
   bool       stateBuzzerClock;
   bool       stateBuzzer;
@@ -72,12 +76,21 @@ struct Config {
   uint8_t    jamOff ;
   uint8_t    menitOn ;
   uint8_t    menitOff ;
+  uint8_t    jumatMulaiJam;
+  uint8_t    jumatMulaiMenit;
+  uint8_t    jumatSelesaiJam;
+  uint8_t    jumatSelesaiMenit;
+  uint8_t    durasiPraiqomah;
   char text1[250];
   char text2[250];
   char text3[250];
   char text4[250];
   char text5[250];
   char name[250];
+  char textIqomah1[250];
+  char textIqomah2[250];
+  char textJumat1[250];
+  char textJumat2[250];
   char ctrJadwal[30];
   
 };
@@ -88,27 +101,18 @@ uint8_t    DHeight       = Disp.height();
 
 // Variabel untuk waktu, tanggal, teks berjalan, tampilan ,dan kecerahan
 bool       adzan         = 0;
+bool       JUMAT         = 0;
 int8_t     sholatNow     = -1;
 bool       reset_x       = 0; 
 
 /*======library tambahan=======*/
 bool       flagAnim = false;
 float      dataFloat[10];
-//int8_t     dataInteger[10];
 bool       stateSendSholat = false; 
 bool       stateBuzzWar    = 0;
 bool       butuhHitungJadwal = true;
 bool       DoSwap          = false;
 bool       panelState = false; // false = OFF, true = ON
-
-//bool showVolumeTemp = false;
-//uint32_t volumeDisplayMillis = 0;
-//constexpr uint16_t volumeDisplayDuration = 2000; // 1 detik
-//
-//constexpr uint8_t MAX_VOLUME = 25;
-//constexpr uint8_t MIN_VOLUME = 0;
-
-//byte volume = 10;
 
 /*============== end ================*/
 
@@ -122,6 +126,8 @@ enum Show{
   ANIM_TEXT5,
   ANIM_NAME,
   ANIM_DATE,
+  ANIM_JUMAT1,
+  ANIM_JUMAT2,
   ANIM_ADZAN,
   ANIM_IQOMAH,
   ANIM_BLINK,
@@ -138,7 +144,7 @@ enum Line{
 };
 Line line = ANIM_ZONK;
 
-#define EEPROM_SIZE       2000
+#define EEPROM_SIZE       3000
 
 
 // ================= TEXT (250 char) =================
@@ -190,6 +196,25 @@ Line line = ANIM_ZONK;
 #define ADDR_MENITOFF     1571   // 1
 
 #define ADDR_STATEALARM   1572   // 1
+
+#define ADDR_JAMONJUMAT     1573  //1
+#define ADDR_MENITONJUMAT   1574  //1
+
+#define ADDR_JAMOFFJUMAT     1575  //1
+#define ADDR_MENITOFFJUMAT   1576  //1
+
+#define ADDR_TEXTIQOMAH1     1577  //251
+#define ADDR_TEXTIQOMAH2     1828  //251
+
+#define ADDR_TEXTJUMAT1     2079  //251
+#define ADDR_TEXTJUMAT2     2330  //251
+
+#define ADDR_SPEEDTXIQ1     2581   // 2
+#define ADDR_SPEEDTXIQ2     2583   // 2
+#define ADDR_SPEEDTXJM1     2585   // 2
+#define ADDR_SPEEDTXJM2     2587   // 2
+
+#define ADDR_TIMEPRAIQOMAH  2589   // 1
 
 // Menggunakan const char* (Array of Character) menggantikan objek String
 void saveStringToEEPROM(int startAddr, const char* data, int maxLength) {
@@ -379,6 +404,14 @@ void loop()
     runn(config.text5,config.speedText5,1);
     break;
 
+    case ANIM_JUMAT1 :
+        runn(config.textJumat1,config.speedTextJumat1,1);
+    break;
+
+    case ANIM_JUMAT2 :
+        runn(config.textJumat2,config.speedTextJumat2,1);
+    break;
+
     case ANIM_ADZAN :
       drawAzzan();
     break;
@@ -489,6 +522,18 @@ void getData(const char* data) {
         } else if (indexText == 5) {
           strcpy(config.text5, tempBuffer);
           saveStringToEEPROM(ADDR_TEXT5, config.text5, 250);
+        } else if (indexText == 6) { //TEXT IQOMAH 1
+          strcpy(config.textIqomah1, tempBuffer);
+          saveStringToEEPROM(ADDR_TEXTIQOMAH1, config.textIqomah1, 250);
+        } else if (indexText == 7) { //TEXT IQOMAH 2
+          strcpy(config.textIqomah2, tempBuffer);
+          saveStringToEEPROM(ADDR_TEXTIQOMAH2, config.textIqomah2, 250);
+        } else if (indexText == 8) { //TEXT JUMAT 1
+          strcpy(config.textJumat1, tempBuffer);
+          saveStringToEEPROM(ADDR_TEXTJUMAT1, config.textJumat1, 250);
+        } else if (indexText == 9){ //TEXT JUMAT 2
+          strcpy(config.textJumat2, tempBuffer);
+          saveStringToEEPROM(ADDR_TEXTJUMAT2, config.textJumat2, 250);
         }
       }
       Buzzer(1); delay(500); ESP.restart();
@@ -523,7 +568,19 @@ void getData(const char* data) {
     } else if (key_len == 5 && strncmp(data, "Sptx5", 5) == 0) {
       config.speedText5 = map(atoi(ptr), 0, 100, 10, 80);
       saveIntToEEPROM(ADDR_SPEEDTX5, config.speedText5);
-    } 
+    } else if (key_len == 7 && strncmp(data, "Sptxiq1", 7) == 0) {
+      config.speedTextIqomah1 = map(atoi(ptr), 0, 100, 10, 80);
+      saveIntToEEPROM(ADDR_SPEEDTXIQ1, config.speedTextIqomah1);
+    } else if (key_len == 7 && strncmp(data, "Sptxiq2", 7) == 0) {
+      config.speedTextIqomah2 = map(atoi(ptr), 0, 100, 10, 80);
+      saveIntToEEPROM(ADDR_SPEEDTXIQ2, config.speedTextIqomah2);
+    } else if (key_len == 7 && strncmp(data, "Sptxjm1", 7) == 0) {
+      config.speedTextJumat1 = map(atoi(ptr), 0, 100, 10, 80);
+      saveIntToEEPROM(ADDR_SPEEDTXJM1, config.speedTextJumat1);
+    } else if (key_len == 7 && strncmp(data, "Sptxjm2", 7) == 0) {
+      config.speedTextJumat2 = map(atoi(ptr), 0, 100, 10, 80);
+      saveIntToEEPROM(ADDR_SPEEDTXJM2, config.speedTextJumat2);
+    }  
     
     else if (key_len == 4 && strncmp(data, "Spdt", 4) == 0) {
       config.speedDate = map(atoi(ptr), 0, 100, 10, 80);
@@ -631,6 +688,40 @@ void getData(const char* data) {
         }
       }
     } 
+
+    //alarm text jumat
+    else if (key_len == 7 && strncmp(data, "jumatOn", 7) == 0) {
+      uint8_t h = atoi(ptr);
+      ptr = strchr(ptr, ':'); 
+      if (ptr) {
+        uint8_t m = atoi(ptr + 1);
+        if (h <= 23 && m <= 59) {
+          config.jumatMulaiJam = h;
+          config.jumatMulaiMenit = m;
+          saveIntToEEPROM(ADDR_JAMONJUMAT, config.jumatMulaiJam);
+          saveIntToEEPROM(ADDR_MENITONJUMAT, config.jumatMulaiMenit);
+        }
+      }
+    } 
+
+    else if (key_len == 8 && strncmp(data, "jumatOff", 8) == 0) {
+      uint8_t h = atoi(ptr);
+      ptr = strchr(ptr, ':'); 
+      if (ptr) {
+        uint8_t m = atoi(ptr + 1);
+        if (h <= 23 && m <= 59) {
+          config.jumatSelesaiJam = h;
+          config.jumatSelesaiMenit = m;
+          saveIntToEEPROM(ADDR_JAMOFFJUMAT, config.jumatSelesaiJam);
+          saveIntToEEPROM(ADDR_MENITOFFJUMAT, config.jumatSelesaiMenit);
+        }
+      }
+    } 
+
+     else if (key_len == 4 && strncmp(data, "tmiq", 4) == 0) {
+      config.durasiPraiqomah = atoi(ptr);
+      saveIntToEEPROM(ADDR_TIMEPRAIQOMAH, config.durasiPraiqomah);
+    } 
     
     else if (key_len == 4 && strncmp(data, "mode", 4) == 0) {
       config.stateMode = atoi(ptr);
@@ -711,6 +802,26 @@ void loadFromEEPROM() {
     if (config.name[i] == 0) break;
   }
 
+  for (uint8_t i = 0; i < 250; i++) {
+    config.textIqomah1[i] = EEPROM.read(ADDR_TEXTIQOMAH1 + i);
+    if (config.textIqomah1[i] == 0) break;
+  }
+
+  for (uint8_t i = 0; i < 250; i++) {
+    config.textIqomah2[i] = EEPROM.read(ADDR_TEXTIQOMAH2 + i);
+    if (config.textIqomah2[i] == 0) break;
+  }
+
+  for (uint8_t i = 0; i < 250; i++) {
+    config.textJumat1[i] = EEPROM.read(ADDR_TEXTJUMAT1 + i);
+    if (config.textJumat1[i] == 0) break;
+  }
+
+  for (uint8_t i = 0; i < 250; i++) {
+    config.textJumat2[i] = EEPROM.read(ADDR_TEXTJUMAT2 + i);
+    if (config.textJumat2[i] == 0) break;
+  }
+
   config.brightness = EEPROM.read(ADDR_BRIGHTNESS);
 
   config.speedText1 = EEPROM.read(ADDR_SPEEDTX1);
@@ -726,6 +837,18 @@ void loadFromEEPROM() {
   config.speedDate = EEPROM.read(ADDR_SPEEDDT);
 
   config.speedName = EEPROM.read(ADDR_SPEEDNAME);
+
+  config.speedTextIqomah1 = EEPROM.read(ADDR_SPEEDTXIQ1); // iqomah
+
+  config.speedTextIqomah2 = EEPROM.read(ADDR_SPEEDTXIQ2);
+
+  config.speedTextJumat1 = EEPROM.read(ADDR_SPEEDTXJM1);
+
+  config.speedTextJumat2 = EEPROM.read(ADDR_SPEEDTXJM2);
+
+  config.durasiPraiqomah = EEPROM.read(ADDR_TIMEPRAIQOMAH);
+
+  
 
   // Latitude
   float latVal;
@@ -791,6 +914,14 @@ void loadFromEEPROM() {
 
   config.menitOff = EEPROM.read(ADDR_MENITOFF);
 
+  config.jumatMulaiJam = EEPROM.read(ADDR_JAMONJUMAT);
+
+  config.jumatMulaiMenit = EEPROM.read(ADDR_MENITONJUMAT);
+
+  config.jumatSelesaiJam = EEPROM.read(ADDR_JAMOFFJUMAT);
+
+  config.jumatSelesaiMenit = EEPROM.read(ADDR_MENITOFFJUMAT);
+
   config.stateMode = EEPROM.read(ADDR_MODE);
 
   for (uint8_t i = 0; i < 8; i++) {
@@ -802,7 +933,7 @@ void loadFromEEPROM() {
  
   config.Correction = EEPROM.read(ADDR_CORRECTION) | (EEPROM.read(ADDR_CORRECTION + 1) << 8);
   
-#if DEBUG
+/*/#if DEBUG
   Serial.print("Text1: ");
   Serial.println(config.text1);
   Serial.print("Text2: ");
@@ -815,6 +946,14 @@ void loadFromEEPROM() {
   Serial.println(config.text5);
   Serial.print("nama: ");
   Serial.println(config.name);
+  Serial.print("iqomah 1: ");
+  Serial.println(config.textIqomah1);
+  Serial.print("iqomah 2: ");
+  Serial.println(config.textIqomah2);
+  Serial.print("jumat 1: ");
+  Serial.println(config.textJumat1);
+  Serial.print("jumat 2: ");
+  Serial.println(config.textJumat2);
   Serial.print("Brightness: ");
   Serial.println(config.brightness);
   Serial.print("Speed Text1: ");
@@ -831,6 +970,14 @@ void loadFromEEPROM() {
   Serial.println(config.speedDate);
   Serial.print("Speed Name: ");
   Serial.println(config.speedName);
+  Serial.print("Speed Iqomah 1: ");
+  Serial.println(config.speedTextIqomah1);
+  Serial.print("Speed Iqomah 2: ");
+  Serial.println(config.speedTextIqomah2);
+  Serial.print("Speed jumat 1: ");
+  Serial.println(config.speedTextJumat1);
+  Serial.print("Speed jumat 2: ");
+  Serial.println(config.speedTextJumat2);
   Serial.print("Latitude: ");
   Serial.println(config.latitude, 6);
   Serial.print("Longitude: ");
@@ -853,6 +1000,16 @@ void loadFromEEPROM() {
   Serial.println(config.jamOff);
   Serial.print("menitOff: ");
   Serial.println(config.menitOff);
+  Serial.print("jumatMulaiJam:");
+  Serial.println(config.jumatMulaiJam);
+  Serial.print("jumatMulaiMenit: ");
+  Serial.println(config.jumatMulaiMenit);
+  Serial.print("jumatSelesaiJam: ");
+  Serial.println(config.jumatSelesaiJam);
+  Serial.print("jumatSelesaiMenit: ");
+  Serial.println(config.jumatSelesaiMenit);
+  Serial.print("durasi pra iqomah: ");
+  Serial.println(config.durasiPraiqomah);
   Serial.print("mode: ");
   Serial.println(config.stateMode);
   Serial.print("Password: ");
@@ -861,7 +1018,7 @@ void loadFromEEPROM() {
   Serial.println(config.durasiadzan);
   Serial.print("Correction: ");
   Serial.println(config.Correction);
-#endif
+//#endif*/
 
 Serial.print("PWD=");
 Serial.println(password);

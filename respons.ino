@@ -22,6 +22,23 @@
   volumeDisplayMillis = millis();
 }
 */
+
+bool cekJadwalJumat(uint8_t jamNow, uint8_t menitNow,uint8_t dayy) {
+ 
+  if (dayy != 5) return false; 
+  
+  uint16_t waktuSekarang = (jamNow * 60) + menitNow;
+  uint16_t waktuMulai = (config.jumatMulaiJam * 60) + config.jumatMulaiMenit;
+  uint16_t waktuSelesai = (config.jumatSelesaiJam * 60) + config.jumatSelesaiMenit;
+
+  // Jika waktu sekarang berada di dalam rentang jadwal
+  if (waktuSekarang >= waktuMulai && waktuSekarang < waktuSelesai) {
+    return true;
+  }
+  else 
+  return false;
+}
+
 //=====================  perhitungan waktu mundur waktu sholat ============================//
 
 // index: 1=Subuh, 2=Dzuhur, 3=Ashar, 4=Maghrib, 5=Isya
