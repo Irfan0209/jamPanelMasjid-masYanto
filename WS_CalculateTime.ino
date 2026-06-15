@@ -9,16 +9,20 @@ void islam() {
   
   JUMAT = cekJadwalJumat(now.Hour(), now.Minute(), now.DayOfWeek()); 
    
-//  // Transisi Jumat
-//  if (JUMAT && !lastJumat) {
-//    show = ANIM_JUMAT1;
-//    lastJumat = true;
-//  } 
-//  else if (!JUMAT && lastJumat) {
-//    // Saat Jumat selesai, kembalikan ke jam normal (tapi pastikan tidak sedang Tarhim)
-//    if (!PRE_IQOMAH) show = ANIM_CLOCK;
-//    lastJumat = false;
-//  }
+  // Transisi Jumat
+  if (JUMAT && !lastJumat) {
+    show = ANIM_JUMAT1;
+    line = ANIM_ZONK;
+    reset_x = 1;
+    lastJumat = true;
+  } 
+  else if (!JUMAT && lastJumat) {
+    // Saat Jumat selesai, kembalikan ke jam normal (tapi pastikan tidak sedang Tarhim)
+    show = ANIM_BIGFONT;
+    line = ANIM_SHOLAT;
+    reset_x = 1;
+    lastJumat = false;
+  }
   
    // 3. LOGIKA BUNYI JAM TEPAT
   static int8_t lastHalfPlay = -1;

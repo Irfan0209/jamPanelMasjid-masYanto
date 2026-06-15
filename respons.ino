@@ -1,27 +1,4 @@
 //=================== menghitung nilai volume =======================//
-/*void setVolume(byte newVolume) {
-
-  if (newVolume > MAX_VOLUME) {
-    volume = MAX_VOLUME;
-    Buzzer(1);
-    delay(50);
-    Buzzer(0);
-  }
-  else if (newVolume < MIN_VOLUME) {
-    volume = MIN_VOLUME;
-    Buzzer(1);
-    delay(50);
-    Buzzer(0);
-  }
-  else {
-    volume = newVolume;
-  }
-
-  // Aktifkan tampilan sementara
-  showVolumeTemp = true;
-  volumeDisplayMillis = millis();
-}
-*/
 
 bool cekJadwalJumat(uint8_t jamNow, uint8_t menitNow,uint8_t dayy) {
  
@@ -61,6 +38,7 @@ void updateSholatNow()
   else if (nowSec < sholatSec[4])   SholatNow = 3;
   else if (nowSec < sholatSec[5])   SholatNow = 4;
   else                              SholatNow = 5;
+
 }
 
 static const uint8_t NEXT_SHOLAT[7] = {

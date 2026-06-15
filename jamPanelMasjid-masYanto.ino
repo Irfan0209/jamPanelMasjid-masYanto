@@ -405,11 +405,11 @@ void loop()
     break;
 
     case ANIM_JUMAT1 :
-        runn(config.textJumat1,config.speedTextJumat1,1);
+        drawSmartText(config.textJumat1,config.speedTextJumat1,5);
     break;
 
     case ANIM_JUMAT2 :
-        runn(config.textJumat2,config.speedTextJumat2,1);
+        drawSmartText(config.textJumat2,config.speedTextJumat2,5);
     break;
 
     case ANIM_ADZAN :
@@ -427,7 +427,7 @@ void loop()
     case ANIM_COUNTER :
      updateNowTime();
      updateSholatNow();
-     runn(tampilSelisih(),50,1);
+     runn(tampilSelisih(),20,1);
     break;
   };
 

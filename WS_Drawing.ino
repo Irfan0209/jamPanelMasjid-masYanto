@@ -99,7 +99,7 @@ void updateAnimSholat() {
 
   drawSholatFrame(shAnim.sNum, shAnim.x-center);
 }
-uint16_t sholatSec[5];   // waktu sholat (detik)
+uint32_t sholatSec[6];   // waktu sholat (detik)
 //===================== convert jam & menit ke detik =============================//
 inline uint32_t toSecond(uint8_t h, uint8_t m, uint8_t s = 0)
 {
@@ -286,13 +286,112 @@ void nextShowState()
     case ANIM_TEXT2:   show = ANIM_TEXT3; break;
     case ANIM_TEXT3:   show = ANIM_TEXT4; break;
     case ANIM_TEXT4:   show = ANIM_TEXT5; break;
-//    case ANIM_TEXT5:   show = ANIM_COUNTER; break;
-    case ANIM_TEXT5:   show = (JUMAT)?ANIM_JUMAT1 : ANIM_COUNTER ; break;
-    case ANIM_JUMAT1:   show = ANIM_JUMAT2; break;
-    case ANIM_JUMAT2:   show = ANIM_COUNTER; break;
+    case ANIM_TEXT5:   show = ANIM_COUNTER; break;
+//    case ANIM_TEXT5:   show = (JUMAT)?ANIM_JUMAT1 : ANIM_COUNTER ; break;
+//    case ANIM_JUMAT1:   show = ANIM_JUMAT2; break;
+//    case ANIM_JUMAT2:   show = ANIM_COUNTER; break;
     case ANIM_COUNTER:   show = ANIM_BIGFONT; line = ANIM_ZONK; reset_x = 1; break;
   }
 }
+
+void drawSmartText(const char* msg, uint8_t speed,uint8_t fontt) {
+  if(adzan) return;
+
+  if (msg == NULL || msg[0] == '\0') {
+    nextShowStateRun(); // Langsung baca state selanjutnya
+    return;             // Keluar dari fungsi agar tidak membuang CPU
+  }
+  
+  static uint16_t x = 0;
+  static uint16_t textW = 0;
+  static uint16_t fullScroll = 0;
+  static bool isScrolling = false;
+  static uint32_t diamTimer = 0; // Timer khusus untuk teks diam
+  
+  // Reset trigger dari luar (saat ganti menu/tampilan)
+  if (reset_x != 0) { 
+    x = 0; 
+    textW = 0;
+    reset_x = 0; 
+    return;
+  }
+
+  uint32_t Tmr = millis();
+  static uint32_t lss = 0;
+
+  // Render frame setiap 45ms (Kecepatan standar agar smooth)
+  if ((Tmr - lss) > speed) {
+    lss = Tmr;
+
+    fType(fontt);
+
+    // ==============================================================
+    // 1. OPTIMASI: Hitung lebar teks SEKALI SAJA di awal
+    // ==============================================================
+    if (textW == 0) {
+      textW = Disp.textWidth(msg);
+      
+      // Cek apakah lebar teks melebihi lebar layar 6 Panel (DWidth)
+      if (textW > DWidth) {
+        isScrolling = true;
+        fullScroll = textW + DWidth;
+      } else {
+        isScrolling = false;
+        diamTimer = Tmr; // Mulai argon timer untuk durasi teks diam
+      }
+      
+    }
+
+    // ==============================================================
+    // 2. LOGIKA TAMPILAN (Diam vs Berjalan)
+    // ==============================================================
+    if (isScrolling) {
+      // --- MODE BERJALAN (Lebih dari 6 Panel) ---
+      if (x < fullScroll) {
+        ++x;
+      } else {
+        x = 0; 
+        textW = 0;
+        fullScroll = 0;
+        
+        // Panggil fungsi ganti tampilan di sini jika diperlukan
+        nextShowStateRun(); 
+        return;
+      }
+      
+      // Render teks berjalan, posisi Y = 4 (tengah vertikal)
+      Disp.drawText(DWidth - x, 4, msg);
+      
+    } else {
+      // --- MODE DIAM (Kurang dari atau sama dengan 6 Panel) ---
+      dwCtr(0, 4, msg);
+      
+      // PENTING: Karena teks diam tidak punya titik akhir scroll,
+      // kita harus memberi batasan waktu tampil (misal: 5000 ms / 5 detik)
+      if (Tmr - diamTimer > 5000) {
+        textW = 0;
+        
+        // Panggil fungsi ganti tampilan di sini jika diperlukan
+        nextShowStateRun(); 
+        return;
+      }
+    }
+
+    DoSwap = true;
+  }
+}
+
+void nextShowStateRun()
+{ 
+  switch(show){
+
+    case ANIM_JUMAT1:   reset_x = 1; show = ANIM_JUMAT2; break;
+    case ANIM_JUMAT2:   reset_x = 1; show = ANIM_JUMAT1; break;
+    
+  }
+ 
+}
+
 
 /*======================= animasi memasuki waktu sholat ====================================*/
 void drawAzzan()
