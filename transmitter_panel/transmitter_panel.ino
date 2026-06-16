@@ -127,10 +127,40 @@ void handleSetTime() {
     server.send(200, "text/plain", "OK");//"Kecepatan info 2 berhasil diupdate");
     return;
   }
+  if (server.hasArg("Sptxiq1")) {
+    snprintf(dataBuffer, sizeof(dataBuffer), "Sptxiq1=%s", server.arg("Sptxiq1").c_str());
+    getData(dataBuffer);
+    server.send(200, "text/plain", "OK");//"Kecepatan info 2 berhasil diupdate");
+    return;
+  }
+  if (server.hasArg("Sptxiq2")) {
+    snprintf(dataBuffer, sizeof(dataBuffer), "Sptxiq2=%s", server.arg("Sptxiq2").c_str());
+    getData(dataBuffer);
+    server.send(200, "text/plain", "OK");//"Kecepatan info 2 berhasil diupdate");
+    return;
+  }
+  if (server.hasArg("Sptxjm1")) {
+    snprintf(dataBuffer, sizeof(dataBuffer), "Sptxjm1=%s", server.arg("Sptxjm1").c_str());
+    getData(dataBuffer);
+    server.send(200, "text/plain", "OK");//"Kecepatan info 2 berhasil diupdate");
+    return;
+  }
+  if (server.hasArg("Sptxjm2")) {
+    snprintf(dataBuffer, sizeof(dataBuffer), "Sptxjm2=%s", server.arg("Sptxjm2").c_str());
+    getData(dataBuffer);
+    server.send(200, "text/plain", "OK");//"Kecepatan info 2 berhasil diupdate");
+    return;
+  }
   if (server.hasArg("Spnm")) {
     snprintf(dataBuffer, sizeof(dataBuffer), "Spnm=%s", server.arg("Spnm").c_str());
     getData(dataBuffer);
     server.send(200, "text/plain", "OK");//"Kecepatan nama berhasil diupdate");
+    return;
+  }
+  if (server.hasArg("tmiq")) {
+    snprintf(dataBuffer, sizeof(dataBuffer), "tmiq=%s", server.arg("tmiq").c_str());
+    getData(dataBuffer);
+    server.send(200, "text/plain", "OK");//"Kecepatan info 2 berhasil diupdate");
     return;
   }
   if (server.hasArg("Iq")) {
@@ -200,6 +230,12 @@ void handleSetTime() {
     server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
     return;
   }
+  if (server.hasArg("test")) {
+    snprintf(dataBuffer, sizeof(dataBuffer), "test=%s", server.arg("test").c_str());
+    getData(dataBuffer);
+    server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
+    return;
+  }
   if (server.hasArg("alarm")) {
     snprintf(dataBuffer, sizeof(dataBuffer), "alarm=%s", server.arg("alarm").c_str());
     getData(dataBuffer);
@@ -218,6 +254,18 @@ void handleSetTime() {
     server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
     return;
   }
+  if (server.hasArg("jumatOn")) {
+    snprintf(dataBuffer, sizeof(dataBuffer), "jumatOn=%s", server.arg("jumatOn").c_str());
+    getData(dataBuffer);
+    server.send(200, "text/plain","OK");// 
+    return;
+  }
+  if (server.hasArg("jumatOff")) {
+    snprintf(dataBuffer, sizeof(dataBuffer), "jumatOff=%s", server.arg("jumatOff").c_str());
+    getData(dataBuffer);
+    server.send(200, "text/plain","OK");// 
+    return;
+  }
   if (server.hasArg("mode")) {
     snprintf(dataBuffer, sizeof(dataBuffer), "mode=%s", server.arg("mode").c_str());
     getData(dataBuffer);
@@ -225,32 +273,25 @@ void handleSetTime() {
     server.send(200, "text/plain","OK");// (stateBuzzer) ? "Suara Diaktifkan" : "Suara Dimatikan");
     return;
   }
+
+    // --- PLAY ---
   if (server.hasArg("PLAY")) {
-    // 1. Ambil data mentah sebagai String hanya untuk parsing
-    String mentah = server.arg("PLAY"); 
+    int folder = 0, file = 0;
     
-    int idx = 0;
-    byte folder = getIntPart(mentah, idx);
-    byte file   = getIntPart(mentah, idx);
+    sscanf(server.arg("PLAY").c_str(), "%d,%d", &folder, &file);
 
-    // 2. Format data langsung ke dalam dataBuffer
-    // %d adalah placeholder untuk integer/byte
     snprintf(dataBuffer, sizeof(dataBuffer), "PLAY:%d,%d", folder, file);
-
-    // 3. Kirim data yang sudah rapi di buffer ke client
-    kirimDataKeClient(dataBuffer); 
-
     server.send(200, "text/plain", "OK");
     return; // Keluar dari fungsi agar lebih efisien
-}
+  }
 
-// --- PLAD ---
+  // --- PLAD ---
   if (server.hasArg("PLAD")) {
-    String mentah = server.arg("PLAD");
-    int idx = 0;
-    byte file = getIntPart(mentah, idx);
+    int file = 0;
+    
+    sscanf(server.arg("PLAD").c_str(), "%d", &file);
+    
     snprintf(dataBuffer, sizeof(dataBuffer), "PLAD:%d", file);
-    kirimDataKeClient(dataBuffer);
     server.send(200, "text/plain", "OK");
     return;
   }
@@ -280,25 +321,23 @@ void handleSetTime() {
 
   // --- NAMAFILE ---
   if (server.hasArg("NAMAFILE")) {
-    String mentah = server.arg("NAMAFILE");
-    int idx = 0;
-    byte folder = getIntPart(mentah, idx);
-    byte file   = getIntPart(mentah, idx);
-    int durasi  = getIntPart(mentah, idx);
+    int folder = 0, file = 0, durasi = 0;
+    
+    // sscanf langsung mengekstrak angka dari format teks (misal: "1,15,120")
+    sscanf(server.arg("NAMAFILE").c_str(), "%d,%d,%d", &folder, &file, &durasi);
+    
     snprintf(dataBuffer, sizeof(dataBuffer), "NAMAFILE:%d,%d,%d", folder, file, durasi);
-    kirimDataKeClient(dataBuffer);
     server.send(200, "text/plain", "OK");
     return;
   }
 
   // --- ADZAN ---
   if (server.hasArg("ADZAN")) {
-    String mentah = server.arg("ADZAN");
-    int idx = 0;
-    byte file  = getIntPart(mentah, idx);
-    int durasi = getIntPart(mentah, idx);
+    int file = 0, durasi = 0;
+    
+    sscanf(server.arg("ADZAN").c_str(), "%d,%d", &file, &durasi);
+    
     snprintf(dataBuffer, sizeof(dataBuffer), "ADZAN:%d,%d", file, durasi);
-    kirimDataKeClient(dataBuffer);
     server.send(200, "text/plain", "OK");
     return;
   }
@@ -350,13 +389,13 @@ void handleSetTime() {
   //EEPROM.commit();
 }
 
-int getIntPart(String &s, int &pos) {
-  int comma = s.indexOf(',', pos);
-  if (comma == -1) comma = s.length();
-  int val = s.substring(pos, comma).toInt();
-  pos = comma + 1;
-  return val;
-}
+//int getIntPart(String &s, int &pos) {
+//  int comma = s.indexOf(',', pos);
+//  if (comma == -1) comma = s.length();
+//  int val = s.substring(pos, comma).toInt();
+//  pos = comma + 1;
+//  return val;
+//}
 
 
 void AP_init() {

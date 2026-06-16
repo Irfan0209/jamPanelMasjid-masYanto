@@ -249,9 +249,6 @@ void handleSetTimeSerial() {
   while (Serial.available() > 0) {
     char c = Serial.read();
 
-    // FILTER 1: Hanya simpan karakter ASCII yang normal / bisa dibaca!
-    // Karakter bernilai 32 (spasi) sampai 126 (simbol '~') mencakup semua huruf, angka, dan tanda baca (=, -, :).
-    // Karakter aneh seperti '⸮' (nilai di atas 127) akan langsung DITENDANG dan tidak dimasukkan ke memori.
     if (c >= 32 && c <= 126) {
       if (index < sizeof(buffer) - 1) {
         buffer[index++] = c;
@@ -262,13 +259,6 @@ void handleSetTimeSerial() {
     else if (c == '\n' || c == '\r') {
       if (index > 0) { 
         buffer[index] = '\0'; // Tutup dan kunci teksnya
-        
-        // --- Boleh biarkan jebakan debug ini sementara ---
-//        Serial.print(F("[DEBUG PINTU MASUK] Teks bersih: '"));
-//        Serial.print(buffer);
-//        Serial.println(F("'"));
-        // -------------------------------------------------
-
         getData(buffer); // Lempar ke pemroses data
         index = 0;       // Reset index menjadi 0 untuk pesan berikutnya
       }
@@ -365,12 +355,6 @@ void loop()
   islam();
   Disp.clear();
   
-//  if (showVolumeTemp) {
-//    tampilkanVolume();
-//    if (millis() - volumeDisplayMillis >= volumeDisplayDuration) {
-//      showVolumeTemp = false;
-//    }
-//  }else{
   switch(show){
     case ANIM_BIGFONT : 
        runn(config.name,config.speedName,5);
@@ -427,7 +411,7 @@ void loop()
     case ANIM_COUNTER :
      updateNowTime();
      updateSholatNow();
-     runn(tampilSelisih(),20,1);
+     runn(tampilSelisih(),40,1);
     break;
   };
 
@@ -455,7 +439,6 @@ void loop()
   
   jamCenter();
   
-//}
     buzzerWarning(stateBuzzWar);
     yield();
     if(DoSwap){Disp.swapBuffers();} // Swap Buffer if Change
@@ -933,7 +916,7 @@ void loadFromEEPROM() {
  
   config.Correction = EEPROM.read(ADDR_CORRECTION) | (EEPROM.read(ADDR_CORRECTION + 1) << 8);
   
-/*/#if DEBUG
+#if DEBUG
   Serial.print("Text1: ");
   Serial.println(config.text1);
   Serial.print("Text2: ");
@@ -1018,12 +1001,11 @@ void loadFromEEPROM() {
   Serial.println(config.durasiadzan);
   Serial.print("Correction: ");
   Serial.println(config.Correction);
-//#endif*/
+#endif
 
 Serial.print("PWD=");
 Serial.println(password);
-//  Serial.println("=== Selesai Membaca EEPROM ===\n");
-//  Serial.println("OK");
+
 }
 
  //----------------------------------------------------------------------

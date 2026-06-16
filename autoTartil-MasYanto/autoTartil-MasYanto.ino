@@ -35,15 +35,17 @@ IPAddress subnet(255, 255, 255, 0);
 #define NORMAL_STATUS_LED 14
 #define LED_WIFI          27
 
+#define potPin            35
+
 #define EEPROM_SIZE 1000
 
 #define HARI_TOTAL  8 // 7 hari + SemuaHari (index ke-7)
 #define WAKTU_TOTAL 5
-#define MAX_FILE    50
-#define MAX_FOLDER  2 //3
+#define MAX_FILE    40
+#define MAX_FOLDER  3
 #define JEDA_ANTAR_TARTIL 20 //500 jeda antar file tartil dalam milidetik
 
-//#define DEBUG 1
+#define DEBUG 1
 
 struct WaktuConfig {
   bool aktif;
@@ -175,7 +177,7 @@ void setup() {
   
   digitalWrite(RELAY_PIN, HIGH); // Awal mati
 
-  // --- Inisialisasi Watchdog Timer untuk ESP32 Core v3.x ---
+  /*/ --- Inisialisasi Watchdog Timer untuk ESP32 Core v3.x ---
   esp_task_wdt_config_t wdt_config = {
     .timeout_ms = WDT_TIMEOUT * 1000,                // Ubah satuan detik menjadi milidetik
     .idle_core_mask = (1 << portNUM_PROCESSORS) - 1, // Memantau aktivitas di semua core
@@ -184,14 +186,14 @@ void setup() {
   
   esp_task_wdt_init(&wdt_config);
   esp_task_wdt_add(NULL); // Daftarkan fungsi loop() ke dalam pengawasan anjing penjaga
-  Serial.println(F("Watchdog Timer Aktif!"));
+  Serial.println(F("Watchdog Timer Aktif!"));*/
 }
 
 void loop() {
   if (sudahEksekusi && millis() - lastTriggerMillis > 60000) {
     sudahEksekusi = false;
   }
-  esp_task_wdt_reset();
+  //esp_task_wdt_reset();
   cekDanPutarSholatNonBlocking();
   cekSelesaiTartil();
   cekSelesaiAdzan();
@@ -199,7 +201,8 @@ void loop() {
   cekSelesaiManual();
   getStatusRun();
   cekStatusSystem();
-  //bacaDataSerial();
+  readSensor();
+  bacaDataSerial();
   
  if (!wifiConnected && millis() - lastWiFiAttempt >= wifiRetryInterval) {
     lastWiFiAttempt = millis();
@@ -376,10 +379,10 @@ void parseData(const char* data) {
 //    Serial.print(F(", File: ")); Serial.print(file);
 
     if (folder >= 1 && folder < 12 && file >= 1 && file < MAX_FILE) {
-      uint16_t durasi = durasiTartil[folder - 1][17 + file];
+      uint16_t durasi = durasiTartil[folder - 1][file];
       if (durasi > 0) {
         dfplayer.volume(volumeDFPlayer);
-        dfplayer.playFolder(folder,17 + file);
+        dfplayer.playFolder(folder,file);
         digitalWrite(RELAY_PIN, LOW); // Relay NYALA
         tartilCounter       = 0;
         targetDurasi        = durasi;
@@ -393,14 +396,14 @@ void parseData(const char* data) {
   // --- Parsing PLAD: ---
   else if (strncmp(data, "PLAD:", 5) == 0) {
     uint8_t file = atoi(data + 5);
-    uint16_t durasi = durasiAdzan[12 + file];
+    uint16_t durasi = durasiAdzan[file];
 
 //    Serial.print(F("[DEBUG PLAD] Play Adzan Manual File: ")); Serial.print(file);
 //    Serial.print(F(", Durasi Target: ")); Serial.println(durasi);
     
     if (durasi > 0) {
       dfplayer.volume(volumeDFPlayer);
-      dfplayer.playFolder(2,12 + file);
+      dfplayer.playFolder(2,file);
       digitalWrite(RELAY_PIN, LOW); // Relay NYALA
       adzanCounter             = 0;
       targetDurasiAdzan        = durasi;

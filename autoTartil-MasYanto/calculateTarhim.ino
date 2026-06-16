@@ -38,12 +38,12 @@ void cekSelesaiAdzanManual() {
 //========================== mengambil durasi Tartil dan Adzan ===============================//
 uint16_t getDurasiTartil(uint8_t folder, uint8_t file) {
   if (folder == 0 || folder > MAX_FOLDER || file >= MAX_FILE) return 0;
-  return durasiTartil[folder - 1][17 + file];
+  return durasiTartil[folder - 1][file];
 }
 
 uint16_t getDurasiAdzan(uint8_t file) {
   if (file == 0 || file >= MAX_FILE) return 0;
-  return durasiAdzan[12 + file];
+  return durasiAdzan[file];
 }
 //============================= END ============================================//
 
@@ -118,7 +118,7 @@ void cekDanPutarSholatNonBlocking() {
         byte f = cfg.list[tartilIndex];
         targetDurasi = getDurasiTartil(tartilFolder, f);
         lastTick = millis();
-        dfplayer.playFolder(1,17 + f);
+        dfplayer.playFolder(tartilFolder,f);
         //dfplayer.playFolder(tartilFolder, f);
 
 #if DEBUG
@@ -131,7 +131,7 @@ void cekDanPutarSholatNonBlocking() {
         adzanCounter = 0;
         lastAdzanTick = millis();
         adzanSedangDiputar = true;
-        dfplayer.playFolder(1,12 + cfg.fileAdzan);
+        dfplayer.playFolder(2,cfg.fileAdzan);
         //dfplayer.playFolder(11, cfg.fileAdzan);
 
 #if DEBUG
@@ -159,8 +159,8 @@ void cekSelesaiTartil() {
           targetDurasi = getDurasiTartil(tartilFolder, f);
           tartilCounter = 0;
           lastTick = millis();
-          dfplayer.playFolder(1,17 + f);
-          //dfplayer.playFolder(tartilFolder, f);
+          //dfplayer.playFolder(1,f);
+          dfplayer.playFolder(tartilFolder, f);
 #if DEBUG
           Serial.print("Memutar tartil selanjutnya: ");
           Serial.println(f);
@@ -198,7 +198,7 @@ void cekSelesaiTartil() {
           targetDurasiAdzan = getDurasiAdzan(currentCfg->fileAdzan);
           lastAdzanTick = millis();
           adzanSedangDiputar = true;
-          dfplayer.playFolder(1,12 + currentCfg->fileAdzan);
+          dfplayer.playFolder(2,currentCfg->fileAdzan);
           //dfplayer.playFolder(11, currentCfg->fileAdzan);
 #if DEBUG
           Serial.println("Tartil selesai, memutar adzan.");

@@ -2,7 +2,7 @@
 //=================== new variabel ========================//
 char * const pasar[]  = {"WAGE", "KLIWON", "LEGI", "PAHING", "PON"}; 
 char * const Hari[]  = {"MINGGU","SENIN","SELASA","RABU","KAMIS","JUM'AT","SABTU"};
-//const char * const bulanMasehi[] PROGMEM = {"JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER" };
+char * const bulanMasehi[] = {"JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER" };
 char* jadwal[] = {"IMSAK","SUBUH", "TERBT", "DUHUR", "ASHAR", "MAGRB", "ISYA'"};
 char* jadwalAzzan[] = {"SUBUH","DZUHUR", "ASHAR", "MAGRIB", "ISYA'"};
 char * namaBulanHijriah[] = {
@@ -22,7 +22,7 @@ struct SholatAnim {
 
 struct MasehiAnim {
   uint8_t  phase;      // IN / HOLD / OUT
-  uint8_t  sNum;       // index sholat
+  int8_t  sNum;       // index sholat
   uint8_t  x;          // posisi animasi
   uint32_t timer;
 };
@@ -30,7 +30,7 @@ struct MasehiAnim {
 SholatAnim shAnim;
 MasehiAnim msAnim;
 
-#define SHOLAT_COUNT 7
+#define SHOLAT_COUNT 6
 #define PHASE_IN     0
 #define PHASE_HOLD   1
 #define PHASE_OUT    2
@@ -60,6 +60,8 @@ void updateAnimSholat() {
   }
   RtcDateTime noww = Rtc.GetDateTime();
 
+  drawSholatFrame(shAnim.sNum, shAnim.x-center);
+  
   switch (shAnim.phase) {
 
     // ====== MASUK ======
@@ -85,10 +87,10 @@ void updateAnimSholat() {
         if (shAnim.x > 0) shAnim.x--;
         else {
           shAnim.sNum++;
-          if (shAnim.sNum >= SHOLAT_COUNT) {
+          if (shAnim.sNum > SHOLAT_COUNT) {
             line = ANIM_MASEHI;
-            Serial.println("TIME:" + String(noww.Hour()) + "," + String(noww.Minute()) + "," + String(noww.Second()) + "," + String(noww.DayOfWeek()));
-            shAnim.sNum=0;
+            Serial.println("TIME:" + String(noww.Hour()) + "," + String(noww.Minute()) + "," + String(noww.Second()) + "," + String(noww.DayOfWeek()));         
+            shAnim.sNum = -1;
             return;
           }
           shAnim.phase = PHASE_IN;
@@ -97,7 +99,7 @@ void updateAnimSholat() {
       break;
   }
 
-  drawSholatFrame(shAnim.sNum, shAnim.x-center);
+  
 }
 uint32_t sholatSec[6];   // waktu sholat (detik)
 //===================== convert jam & menit ke detik =============================//
@@ -108,7 +110,7 @@ inline uint32_t toSecond(uint8_t h, uint8_t m, uint8_t s = 0)
 
 void drawSholatFrame(uint8_t sNum, int8_t x) {
 
-  if (sNum >= SHOLAT_COUNT) return;
+  if (sNum > SHOLAT_COUNT) return;
 
   float sholatT[]={JWS.floatImsak,JWS.floatSubuh,JWS.floatTerbit,JWS.floatDzuhur,JWS.floatAshar,JWS.floatMaghrib,JWS.floatIsya};
 
@@ -200,7 +202,7 @@ void updateAnimUpDown(const char* msg) {
 //==================== animasi jam dan running text =================//
 
 void jamCenter(){
-  if(adzan) return;
+  if(adzan || JUMAT) return;
 
   RtcDateTime now = Rtc.GetDateTime();
     
@@ -222,7 +224,6 @@ void jamCenter(){
   
   Disp.drawChar(18, 0, '0' + now.Minute() / 10);
   Disp.drawChar(25, 0, '0' + now.Minute() % 10);
-  //DoSwap = true;
 }
 
 void runn(const char* msg, uint8_t speed, uint8_t fontt)
@@ -287,9 +288,6 @@ void nextShowState()
     case ANIM_TEXT3:   show = ANIM_TEXT4; break;
     case ANIM_TEXT4:   show = ANIM_TEXT5; break;
     case ANIM_TEXT5:   show = ANIM_COUNTER; break;
-//    case ANIM_TEXT5:   show = (JUMAT)?ANIM_JUMAT1 : ANIM_COUNTER ; break;
-//    case ANIM_JUMAT1:   show = ANIM_JUMAT2; break;
-//    case ANIM_JUMAT2:   show = ANIM_COUNTER; break;
     case ANIM_COUNTER:   show = ANIM_BIGFONT; line = ANIM_ZONK; reset_x = 1; break;
   }
 }
@@ -360,11 +358,11 @@ void drawSmartText(const char* msg, uint8_t speed,uint8_t fontt) {
       }
       
       // Render teks berjalan, posisi Y = 4 (tengah vertikal)
-      Disp.drawText(DWidth - x, 4, msg);
+      Disp.drawText(DWidth - x, 0, msg);
       
     } else {
       // --- MODE DIAM (Kurang dari atau sama dengan 6 Panel) ---
-      dwCtr(0, 4, msg);
+      dwCtr(0, 0, msg);
       
       // PENTING: Karena teks diam tidak punya titik akhir scroll,
       // kita harus memberi batasan waktu tampil (misal: 5000 ms / 5 detik)

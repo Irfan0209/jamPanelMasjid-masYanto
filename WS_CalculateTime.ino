@@ -19,7 +19,6 @@ void islam() {
   else if (!JUMAT && lastJumat) {
     // Saat Jumat selesai, kembalikan ke jam normal (tapi pastikan tidak sedang Tarhim)
     show = ANIM_BIGFONT;
-    line = ANIM_SHOLAT;
     reset_x = 1;
     lastJumat = false;
   }
@@ -39,10 +38,10 @@ void islam() {
   }
 
   // Restart otomatis (opsional, dari kodemu)
-  if (now.Minute() == 0 && now.Second() == 0 && now.Hour() == 0){
-    Serial.println("restart");
-    // ESP.restart(); // (Aktifkan jika memang alat diset untuk restart harian)
-  }
+//  if (now.Minute() == 0 && now.Second() == 0 && now.Hour() == 0){
+//    Serial.println("restart");
+//    // ESP.restart(); // (Aktifkan jika memang alat diset untuk restart harian)
+//  }
 
   // 5. EKSEKUSI RUMUS KALKULASI JWS
   if(butuhHitungJadwal){
