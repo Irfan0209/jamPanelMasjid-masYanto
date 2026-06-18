@@ -45,7 +45,7 @@ IPAddress subnet(255, 255, 255, 0);
 #define MAX_FOLDER  3
 #define JEDA_ANTAR_TARTIL 20 //500 jeda antar file tartil dalam milidetik
 
-#define DEBUG 1
+//#define DEBUG 1
 
 struct WaktuConfig {
   bool aktif;
@@ -156,12 +156,12 @@ void setup() {
   dfSerial.begin(9600, SERIAL_8N1, /*rx =*/16, /*tx =*/17);
  
   if (!dfplayer.begin(dfSerial,/*isACK = */true, /*doReset = */true)) {
-    Serial.println("DFPlayer tidak terdeteksi!");
+    Serial.println(F("DFPlayer tidak terdeteksi!"));
     while (1);
   }
   
   dfplayer.enableDAC(); // Pakai output DAC (line out)
-  Serial.println("Sistem Auto Tartil Siap.");
+  Serial.println(F("Sistem Auto Tartil Siap."));
   
   loadFromEEPROM();
   
@@ -177,7 +177,7 @@ void setup() {
   
   digitalWrite(RELAY_PIN, HIGH); // Awal mati
 
-  /*/ --- Inisialisasi Watchdog Timer untuk ESP32 Core v3.x ---
+  // --- Inisialisasi Watchdog Timer untuk ESP32 Core v3.x ---
   esp_task_wdt_config_t wdt_config = {
     .timeout_ms = WDT_TIMEOUT * 1000,                // Ubah satuan detik menjadi milidetik
     .idle_core_mask = (1 << portNUM_PROCESSORS) - 1, // Memantau aktivitas di semua core
@@ -186,14 +186,14 @@ void setup() {
   
   esp_task_wdt_init(&wdt_config);
   esp_task_wdt_add(NULL); // Daftarkan fungsi loop() ke dalam pengawasan anjing penjaga
-  Serial.println(F("Watchdog Timer Aktif!"));*/
+  Serial.println(F("Watchdog Timer Aktif!"));
 }
 
 void loop() {
   if (sudahEksekusi && millis() - lastTriggerMillis > 60000) {
     sudahEksekusi = false;
   }
-  //esp_task_wdt_reset();
+  esp_task_wdt_reset();
   cekDanPutarSholatNonBlocking();
   cekSelesaiTartil();
   cekSelesaiAdzan();
@@ -202,7 +202,7 @@ void loop() {
   getStatusRun();
   cekStatusSystem();
   readSensor();
-  bacaDataSerial();
+  //bacaDataSerial();
   
  if (!wifiConnected && millis() - lastWiFiAttempt >= wifiRetryInterval) {
     lastWiFiAttempt = millis();

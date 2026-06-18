@@ -3,8 +3,9 @@ void readSensor(){
   uint32_t currentMillis = millis();
   
   // Variabel Kontrol Tampilan LCD
-//  static uint32_t volumeDisplayMillis = 0;
-  constexpr uint32_t lastReadTime = 0;
+  static int8_t lastVolume = -1;
+  static uint8_t currentVolume;
+  static uint32_t lastReadTime = 0;
   constexpr uint8_t readInterval = 100;
   
   // Membaca potensiometer tanpa menghentikan program lain
@@ -25,7 +26,7 @@ void readSensor(){
       lastVolume = currentVolume;
 
       dfplayer.volume(currentVolume);
-   
+      //Serial.println(currentVolume);
       volumeDFPlayer = currentVolume;
     }
   }

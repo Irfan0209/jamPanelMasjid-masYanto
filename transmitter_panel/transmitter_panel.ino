@@ -276,22 +276,22 @@ void handleSetTime() {
 
     // --- PLAY ---
   if (server.hasArg("PLAY")) {
-    int folder = 0, file = 0;
+    uint16_t folder = 0, file = 0;
     
     sscanf(server.arg("PLAY").c_str(), "%d,%d", &folder, &file);
-
     snprintf(dataBuffer, sizeof(dataBuffer), "PLAY:%d,%d", folder, file);
+    kirimDataKeClient(dataBuffer);
     server.send(200, "text/plain", "OK");
     return; // Keluar dari fungsi agar lebih efisien
   }
 
   // --- PLAD ---
   if (server.hasArg("PLAD")) {
-    int file = 0;
+    uint16_t file = 0;
     
     sscanf(server.arg("PLAD").c_str(), "%d", &file);
-    
     snprintf(dataBuffer, sizeof(dataBuffer), "PLAD:%d", file);
+    kirimDataKeClient(dataBuffer);
     server.send(200, "text/plain", "OK");
     return;
   }
@@ -321,23 +321,23 @@ void handleSetTime() {
 
   // --- NAMAFILE ---
   if (server.hasArg("NAMAFILE")) {
-    int folder = 0, file = 0, durasi = 0;
+    uint16_t folder = 0, file = 0, durasi = 0;
     
     // sscanf langsung mengekstrak angka dari format teks (misal: "1,15,120")
     sscanf(server.arg("NAMAFILE").c_str(), "%d,%d,%d", &folder, &file, &durasi);
-    
     snprintf(dataBuffer, sizeof(dataBuffer), "NAMAFILE:%d,%d,%d", folder, file, durasi);
+    kirimDataKeClient(dataBuffer);
     server.send(200, "text/plain", "OK");
     return;
   }
 
   // --- ADZAN ---
   if (server.hasArg("ADZAN")) {
-    int file = 0, durasi = 0;
+    uint16_t file = 0, durasi = 0;
     
     sscanf(server.arg("ADZAN").c_str(), "%d,%d", &file, &durasi);
-    
     snprintf(dataBuffer, sizeof(dataBuffer), "ADZAN:%d,%d", file, durasi);
+    kirimDataKeClient(dataBuffer);
     server.send(200, "text/plain", "OK");
     return;
   }
@@ -388,14 +388,6 @@ void handleSetTime() {
   
   //EEPROM.commit();
 }
-
-//int getIntPart(String &s, int &pos) {
-//  int comma = s.indexOf(',', pos);
-//  if (comma == -1) comma = s.length();
-//  int val = s.substring(pos, comma).toInt();
-//  pos = comma + 1;
-//  return val;
-//}
 
 
 void AP_init() {
